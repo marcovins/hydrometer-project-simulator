@@ -1,0 +1,130 @@
+@startuml Hydrometer_Simulator_Class_Diagram
+
+title Diagrama de Classes - Simulador de Hidrômetro
+
+' Main function
+class Main {
+    + main() : int
+}
+
+' Simulator class
+class Simulator {
+    - running : atomic<bool>
+    - hidrometer : unique_ptr<Hidrometer>
+    - inputThread : thread
+    - imageThread : thread
+    - image : Image
+    
+    + Simulator()
+    + ~Simulator()
+    + getHidrometer() : Hidrometer*
+    + getPipeIN() : Pipe*
+    + getPipeOUT() : Pipe*
+    + getCounter() : int
+    + getHidrometerStatus() : bool
+    + isRunning() : bool
+    + run() : void
+    + stop() : void
+    + generateImage() : void
+    
+    - throwFlow() : void
+    - updateImage() : void
+    - imageUpdateLoop() : void
+}
+
+' Hidrometer class
+class Hidrometer {
+    - pipeIN : unique_ptr<Pipe>
+    - pipeOUT : unique_ptr<Pipe>
+    - update_thread : thread
+    - running : atomic<bool>
+    - counter : atomic<int>
+    - status : atomic<bool>
+    - counterFloat : float
+    
+    + Hidrometer(diameterIN: float, lengthIN: float, roughnessIN: float, diameterOUT: float, lengthOUT: float, roughnessOUT: float)
+    + ~Hidrometer()
+    + getPipeIN() : Pipe*
+    + getPipeOUT() : Pipe*
+    + getCounter() : int
+    + getStatus() : bool
+    + activate() : void
+    + deactivate() : void
+    
+    - update() : void
+}
+
+' Pipe class
+class Pipe {
+    - flowRate : float
+    - maxFlow : float
+    - diameter : float
+    - length : float
+    - roughness : float
+    
+    + Pipe(diameter: float, length: float, roughness: float)
+    + getDiameter() : float
+    + getLength() : float
+    + getRoughness() : float
+    + getFlowRate() : float
+    + getMaxFlow() : float
+    + maxFlowForDeltaP(deltaP: double, rho: double, mu: double, g: double) : double
+    + setFlowRate(flowRate: float) : void
+}
+
+' Image class
+class Image {
+    - surface : cairo_surface_t*
+    - cr : cairo_t*
+    - width : int
+    - height : int
+    
+    + Image(width: int, height: int)
+    + ~Image()
+    + generate_image(counter: int, flowRate: float) : void
+}
+
+' Constants classes for organization
+class Constants {
+    {static} + DIAMETER_IN : float = 0.1f
+    {static} + LENGTH_IN : float = 1.0f  
+    {static} + ROUGHNESS_IN : float = 0.0001f
+    {static} + DIAMETER_OUT : float = 0.1f
+    {static} + LENGTH_OUT : float = 1.0f
+    {static} + ROUGHNESS_OUT : float = 0.0001f
+    {static} + DEFAULT_WIDTH : int = 400
+    {static} + DEFAULT_HEIGHT : int = 400
+    {static} + M_PI : double = 3.14159265358979323846
+    {static} + RHO : double = 998.0
+    {static} + MU : double = 1.002e-3
+    {static} + G : double = 9.80665
+}
+
+' Relationships
+Main --> Simulator : creates
+Simulator *-- Hidrometer : contains
+Simulator *-- Image : contains
+Simulator ..> Constants : uses
+Hidrometer *-- Pipe : contains 2
+Hidrometer ..> Constants : uses
+Pipe ..> Constants : uses
+Image ..> Constants : uses
+
+' Composition relationships
+Simulator ||--|| Hidrometer : "1"
+Hidrometer ||--|| Pipe : "2 (IN/OUT)"
+Simulator ||--|| Image : "1"
+
+' Threading relationships
+note top of Simulator : Gerencia threads para:\n- Geração de vazão\n- Atualização de imagem
+note top of Hidrometer : Possui thread própria\npara atualização contínua
+note right of Image : Utiliza biblioteca Cairo\npara geração de imagens PNG
+
+' Stereotypes
+Simulator : <<Controller>>
+Hidrometer : <<Entity>>
+Pipe : <<Entity>>
+Image : <<Utility>>
+Constants : <<Static>>
+
+@enduml

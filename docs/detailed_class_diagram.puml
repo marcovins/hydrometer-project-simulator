@@ -1,0 +1,176 @@
+@startuml Hydrometer_Detailed_Class_Diagram
+
+!define RECTANGLE class
+
+title Diagrama de Classes Detalhado - Simulador de Hidrômetro\nPadrões: Singleton, Observer, Strategy, Composite
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 10
+skinparam packageStyle rectangle
+
+package "Main Application" {
+    class Main {
+        {static} + main() : int
+        --
+        Ponto de entrada da aplicação
+        Gerencia ciclo de vida do simulador
+    }
+}
+
+package "Core Simulation" {
+    class Simulator {
+        - running : atomic<bool>
+        - hidrometer : unique_ptr<Hidrometer>
+        - inputThread : thread
+        - imageThread : thread  
+        - image : Image
+        ==
+        + Simulator()
+        + ~Simulator()
+        --
+        + getHidrometer() : Hidrometer*
+        + getPipeIN() : Pipe*
+        + getPipeOUT() : Pipe* 
+        + getCounter() : int
+        + getHidrometerStatus() : bool
+        + isRunning() : bool
+        --
+        + run() : void
+        + stop() : void
+        + generateImage() : void
+        --
+        - throwFlow() : void {thread}
+        - updateImage() : void
+        - imageUpdateLoop() : void {thread}
+        --
+        <<Controller Pattern>>
+        Coordena toda a simulação
+        Gerencia threads concorrentes
+    }
+
+    class Hidrometer {
+        - pipeIN : unique_ptr<Pipe>
+        - pipeOUT : unique_ptr<Pipe>
+        - update_thread : thread
+        - running : atomic<bool>
+        - counter : atomic<int>
+        - status : atomic<bool>
+        - counterFloat : float
+        ==
+        + Hidrometer(diameterIN: float = 0.1f,\n            lengthIN: float = 1.0f,\n            roughnessIN: float = 0.0001f,\n            diameterOUT: float = 0.1f,\n            lengthOUT: float = 1.0f,\n            roughnessOUT: float = 0.0001f)
+        + ~Hidrometer()
+        --
+        + getPipeIN() : Pipe*
+        + getPipeOUT() : Pipe*
+        + getCounter() : int
+        + getStatus() : bool
+        --
+        + activate() : void
+        + deactivate() : void
+        --
+        - update() : void {thread}
+        --
+        <<Entity Pattern>>
+        Simula comportamento real de hidrômetro
+        Thread-safe com atomic operations
+    }
+}
+
+package "Hydraulic System" {
+    class Pipe {
+        - flowRate : float
+        - maxFlow : float
+        - diameter : float
+        - length : float  
+        - roughness : float
+        ==
+        + Pipe(diameter: float, length: float, roughness: float)
+        --
+        + getDiameter() : float
+        + getLength() : float
+        + getRoughness() : float
+        + getFlowRate() : float
+        + getMaxFlow() : float
+        --
+        + maxFlowForDeltaP(deltaP: double = 100000,\n                   rho: double = 998.0,\n                   mu: double = 1.002e-3,\n                   g: double = 9.80665) : double
+        + setFlowRate(flowRate: float) : void
+        --
+        <<Entity Pattern>>
+        Implementa equação Darcy-Weisbach
+        Calcula perdas de carga hidráulicas
+    }
+}
+
+package "Visualization" {
+    class Image {
+        - surface : cairo_surface_t*
+        - cr : cairo_t*
+        - width : int
+        - height : int
+        ==
+        + Image(width: int = 400, height: int = 400)
+        + ~Image()
+        --
+        + generate_image(counter: int, flowRate: float) : void
+        --
+        <<Utility Pattern>>
+        Gera imagens PNG com Cairo
+        Visualização realística do hidrômetro
+    }
+}
+
+package "Configuration" {
+    class HidrometerConstants <<static>> {
+        {static} + DIAMETER_IN : float = 0.1f
+        {static} + LENGTH_IN : float = 1.0f
+        {static} + ROUGHNESS_IN : float = 0.0001f
+        {static} + DIAMETER_OUT : float = 0.1f
+        {static} + LENGTH_OUT : float = 1.0f
+        {static} + ROUGHNESS_OUT : float = 0.0001f
+    }
+    
+    class PhysicsConstants <<static>> {
+        {static} + M_PI : double = 3.14159265358979323846
+        {static} + RHO : double = 998.0 {Densidade água kg/m³}
+        {static} + MU : double = 1.002e-3 {Viscosidade Pa·s}
+        {static} + G : double = 9.80665 {Gravidade m/s²}
+    }
+    
+    class ImageConstants <<static>> {
+        {static} + DEFAULT_WIDTH : int = 400
+        {static} + DEFAULT_HEIGHT : int = 400
+    }
+}
+
+' Relationships
+Main --> Simulator : "creates & manages"
+Simulator *-- Hidrometer : "composition\n1..1"
+Simulator *-- Image : "composition\n1..1"
+Hidrometer *-- Pipe : "composition\n1..2"
+
+' Dependencies
+Simulator ..> HidrometerConstants : "uses"
+Hidrometer ..> HidrometerConstants : "uses"
+Hidrometer ..> PhysicsConstants : "uses"
+Pipe ..> PhysicsConstants : "uses"
+Image ..> ImageConstants : "uses"
+
+' Threading annotations
+note top of Simulator : **Multi-Threading Controller**\n• Main thread: coordenação\n• InputThread: geração vazão\n• ImageThread: atualização visual\n• Atomic operations para thread-safety
+
+note right of Hidrometer : **Thread-Safe Entity**\n• Update thread própria\n• Atomic counters\n• Simulação tempo real\n• Perda de carga 10%
+
+note bottom of Pipe : **Physics Simulation**\n• Equação Darcy-Weisbach\n• Regime turbulento/laminar\n• Convergência iterativa\n• Perdas de carga realísticas
+
+note left of Image : **Cairo Graphics**\n• Renderização vetorial\n• PNG output\n• Visual realístico\n• Atualização dinâmica
+
+' Patterns annotations
+note as N1
+    **Padrões Implementados:**
+    • **Composite**: Hidrometer + 2 Pipes
+    • **Strategy**: Diferentes cálculos hidráulicos
+    • **Observer**: Threads observam mudanças
+    • **Resource Management**: RAII com smart pointers
+end note
+
+@enduml

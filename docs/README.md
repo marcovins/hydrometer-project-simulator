@@ -175,3 +175,5 @@ plantuml -tsvg docs/*.puml
 ```
 
 ---
+
+*Diagrama gerado automaticamente baseado na análise do código fonte do projeto*

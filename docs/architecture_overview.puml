@@ -1,0 +1,87 @@
+@startuml Architecture_Overview
+
+!theme plain
+title Arquitetura do Simulador de Hidrômetro\nVisão Geral dos Componentes e Fluxo de Dados
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam rectangleFontSize 11
+
+!define LIGHTBLUE #E1F5FE
+!define LIGHTGREEN #E8F5E8  
+!define LIGHTYELLOW #FFF9C4
+!define LIGHTPINK #FCE4EC
+!define LIGHTGRAY #F5F5F5
+
+package "Application Layer" LIGHTBLUE {
+    [Main Application] as Main
+    note right of Main : Ponto de entrada\nControle do ciclo de vida
+}
+
+package "Control Layer" LIGHTGREEN {
+    [Simulator Controller] as Simulator
+    note right of Simulator : Coordenação geral\nGerenciamento de threads\nOrquestração da simulação
+}
+
+package "Business Logic" LIGHTYELLOW {
+    [Hydrometer Entity] as Hydrometer
+    [Pipe Calculator] as Pipe
+    note right of Hydrometer : Lógica de medição\nContador de volume\nSimulação tempo real
+    note right of Pipe : Cálculos hidráulicos\nEquação Darcy-Weisbach\nValidação de limites
+}
+
+package "Presentation Layer" LIGHTPINK {
+    [Image Generator] as Image
+    [Cairo Graphics] as Cairo
+    note right of Image : Visualização realística\nGeração PNG dinâmica
+}
+
+package "Infrastructure" LIGHTGRAY {
+    [Threading System] as Threads
+    [Atomic Operations] as Atomic
+    [Smart Pointers] as SmartPtr
+    [File System] as FileSystem
+}
+
+' Main relationships
+Main --> Simulator : creates & controls
+Simulator --> Hydrometer : manages
+Simulator --> Image : coordinates
+Hydrometer --> Pipe : uses (2 instances)
+Image --> Cairo : renders with
+
+' Infrastructure dependencies  
+Simulator ..> Threads : uses
+Hydrometer ..> Atomic : synchronizes with
+Simulator ..> SmartPtr : manages memory with
+Image ..> FileSystem : saves to
+
+' Data Flow
+Main : User Input
+Main : Status Display
+Simulator : Flow Generation Thread
+Simulator : Image Update Thread  
+Hydrometer : Measurement Thread
+Pipe : IN: Flow Input
+Pipe : OUT: Flow Output (90%)
+Image : PNG Generation
+
+' Threading arrows
+Simulator -down-> Hydrometer : "⚡ Thread Communication"
+Simulator -down-> Image : "🎨 Image Updates"
+Hydrometer -left-> Pipe : "💧 Flow Data"
+
+' External interfaces
+cloud "User Interface" as UI {
+    [Console Output]
+    [PNG Files]
+    [Keyboard Input]
+}
+
+Main <--> UI : interacts
+Image --> UI : generates
+
+' Performance notes
+note bottom : **Performance Characteristics**\n• Multi-threaded: 3 concurrent threads\n• Real-time: 100ms update intervals\n• Memory safe: RAII + smart pointers\n• Thread safe: atomic operations\n• Visual: 3s image generation cycle
+
+@enduml

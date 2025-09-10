@@ -1,0 +1,135 @@
+@startuml Hydrometer_Sequence_Diagram
+
+title Diagrama de Sequência - Simulador de Hidrômetro
+
+actor User
+participant Main
+participant Simulator
+participant Hidrometer  
+participant "PipeIN : Pipe" as PipeIN
+participant "PipeOUT : Pipe" as PipeOUT
+participant Image
+participant "InputThread" as IT
+participant "ImageThread" as ImgT
+participant "UpdateThread" as UT
+
+== Inicialização ==
+User -> Main : Executar programa
+activate Main
+
+Main -> Simulator : new Simulator()
+activate Simulator
+
+Simulator -> Hidrometer : new Hidrometer()
+activate Hidrometer
+
+Hidrometer -> PipeIN : new Pipe(diameter, length, roughness)
+activate PipeIN
+PipeIN -> PipeIN : calculateMaxFlow()
+PipeIN --> Hidrometer : Pipe criado
+
+Hidrometer -> PipeOUT : new Pipe(diameter, length, roughness)
+activate PipeOUT
+PipeOUT -> PipeOUT : calculateMaxFlow()
+PipeOUT --> Hidrometer : Pipe criado
+
+Hidrometer -> UT : std::thread(&Hidrometer::update)
+activate UT
+note right : Thread própria do hidrômetro\ninicia em loop contínuo
+
+Hidrometer --> Simulator : Hidrometer criado
+
+Simulator -> Image : new Image(400, 400)
+activate Image
+Image -> Image : cairo_create_surface()
+Image --> Simulator : Image criada
+
+Simulator --> Main : Simulator criado
+
+== Execução da Simulação ==
+Main -> Simulator : run()
+
+Simulator -> Hidrometer : activate()
+Hidrometer -> Hidrometer : status = true
+
+Simulator -> IT : std::thread(&Simulator::throwFlow)
+activate IT
+
+Simulator -> ImgT : std::thread(&Simulator::imageUpdateLoop)
+activate ImgT
+
+loop Geração de Vazão (InputThread)
+    IT -> PipeIN : setFlowRate(randomFlow)
+    PipeIN -> PipeIN : validar vazão <= maxFlow
+    IT -> PipeOUT : setFlowRate(flowIN * 0.9)
+    note right : Perda de 10% simulada
+    IT -> IT : sleep(1000ms)
+end
+
+loop Atualização Hidrômetro (UpdateThread)
+    UT -> PipeOUT : getFlowRate()
+    PipeOUT --> UT : currentFlow
+    UT -> UT : volume += flow * deltaTime * 1000
+    UT -> UT : counter = (int)counterFloat
+    UT -> UT : sleep(100ms)
+end
+
+loop Geração de Imagens (ImageThread)
+    ImgT -> Hidrometer : getCounter()
+    Hidrometer --> ImgT : currentCounter
+    ImgT -> PipeIN : getFlowRate()
+    PipeIN --> ImgT : currentFlow
+    ImgT -> Image : generate_image(counter, flow)
+    Image -> Image : draw_realistic_hydrometer()
+    Image -> Image : cairo_surface_write_to_png()
+    ImgT -> ImgT : sleep(3000ms)
+end
+
+== Monitoramento ==
+loop Monitoramento (Main Thread)
+    Main -> Simulator : getCounter()
+    Simulator -> Hidrometer : getCounter()
+    Hidrometer --> Simulator : counter
+    Simulator --> Main : counter
+    Main -> Main : display status
+    Main -> Main : check user input
+    alt User presses 'q'
+        Main -> Main : break loop
+    else Counter >= 200L
+        Main -> Main : break loop
+    end
+    Main -> Main : sleep(2000ms)
+end
+
+== Finalização ==
+Main -> Simulator : stop()
+
+Simulator -> Hidrometer : deactivate()
+Hidrometer -> Hidrometer : status = false
+Hidrometer -> UT : running = false
+deactivate UT
+
+Simulator -> IT : running = false
+deactivate IT
+
+Simulator -> ImgT : running = false  
+deactivate ImgT
+
+Simulator -> Simulator : join all threads
+
+Main -> Simulator : ~Simulator()
+Simulator -> Hidrometer : ~Hidrometer()
+Hidrometer -> PipeIN : ~Pipe()
+deactivate PipeIN
+Hidrometer -> PipeOUT : ~Pipe()
+deactivate PipeOUT
+deactivate Hidrometer
+
+Simulator -> Image : ~Image()
+Image -> Image : cairo_destroy()
+deactivate Image
+
+deactivate Simulator
+deactivate Main
+
+@enduml
