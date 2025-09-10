@@ -1,24 +1,106 @@
-# Compiled class file
-*.class
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
 
-# Log file
-*.log
+# Precompiled Headers
+*.gch
+*.pch
 
-# BlueJ files
-*.ctxt
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# Fortran module files
+*.mod
+*.smod
 
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+hidrometer_simulator
+hidrometer_simulator_debug
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+
+# Build directories
+build/
+bin/
+obj/
+debug/
+release/
+
+# IDE files
+.vscode/
+.vs/
+*.vcxproj*
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Qt
+*.pro.user
+*.pro.user.*
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qm
+.qmake.cache
+.qmake.stash
+
+# Conan
+conanfile.txt
+conanbuildinfo.*
+conan.lock
+
+# Package management
+vcpkg_installed/
+
+# Distribution files
 *.tar.gz
+*.zip
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+# Log files
+*.log
+
+# Temporary files
+*~
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
