@@ -104,3 +104,6 @@ vcpkg_installed/
 *.swo
 .DS_Store
 Thumbs.db
+
+# hidrometro png
+hidrometro.png
