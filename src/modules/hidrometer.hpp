@@ -1,7 +1,7 @@
 #ifndef HIDROMETER_H
 #define HIDROMETER_H
 
-#include "pipe.h"
+#include "pipe.hpp"
 #include <thread>
 #include <chrono>
 #include <memory>

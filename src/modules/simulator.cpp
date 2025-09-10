@@ -1,4 +1,4 @@
-#include "simulator.h"
+#include "simulator.hpp"
 #include <random>
 #include <chrono>
 #include <iostream>

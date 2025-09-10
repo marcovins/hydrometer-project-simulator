@@ -4,8 +4,8 @@
 #include <thread>
 #include <memory>
 #include <atomic>
-#include "hidrometer.h"
-#include "../utils/image.h"
+#include "hidrometer.hpp"
+#include "../utils/image.hpp"
 
 
 class Simulator {
