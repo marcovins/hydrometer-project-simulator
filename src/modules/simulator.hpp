@@ -4,9 +4,25 @@
 #include <thread>
 #include <memory>
 #include <atomic>
+#include <random>
+#include <chrono>
+#include <iostream>
+#include <iomanip>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
 #include "hidrometer.hpp"
 #include "../utils/image.hpp"
 
+#define IMAGE_PATH "medicoes_202311250013/"
+
+enum Key {
+    KEY_UP = 1000,
+    KEY_DOWN = 1001,
+    KEY_RIGHT = 1002,
+    KEY_LEFT = 1003,
+    KEY_ESC = 27
+};
 
 class Simulator {
     public:
@@ -25,7 +41,8 @@ class Simulator {
         void generateImage() const { updateImage(); }
 
     private:
-        void throwFlow() const;
+        int getKey() const;
+        void updateFlow();
         void updateImage() const;
         void imageUpdateLoop() const;
 

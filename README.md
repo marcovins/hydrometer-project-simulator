@@ -1,177 +1,273 @@
-# Diagramas de Classes - Simulador de Hidrômetro
+# Simulador de Hidrômetro Residencial
 
-Este documento apresenta os diagramas de classes e arquitetura do simulador de hidrômetro desenvolvido em C++.
+Um simulador completo de hidrômetro em C++ com visualização gráfica em tempo real, cálculos hidráulicos precisos e arquitetura multi-thread.
 
-## 📋 Índice
+## 🚀 Funcionalidades Principais
 
-1. [Visão Geral da Arquitetura](#visão-geral-da-arquitetura)
-2. [Diagrama de Classes Simplificado](#diagrama-de-classes-simplificado)
-3. [Diagrama de Classes Detalhado](#diagrama-de-classes-detalhado)
-4. [Diagrama de Sequência](#diagrama-de-sequência)
-5. [Padrões de Projeto Utilizados](#padrões-de-projeto-utilizados)
-6. [Tecnologias e Bibliotecas](#tecnologias-e-bibliotecas)
+### � Simulação Hidráulica Realística
+- **Cálculos baseados na equação de Darcy-Weisbach** para perda de carga
+- **Detecção automática de regime** (laminar/turbulento) via número de Reynolds
+- **Dimensões residenciais padrão**: 15mm diâmetro, rugosidade 0.00005m
+- **Vazão máxima dinâmica** calculada automaticamente com base nas características do sistema
 
-## 🏗️ Visão Geral da Arquitetura
+### 🎮 Interface Interativa
+- **Controle em tempo real** da vazão usando setas do teclado (↑↓←→)
+- **Saída controlada** com tecla ESC
+- **Display organizado** com 4 linhas de informação sempre visíveis
+- **Logs estruturados** com níveis (STARTUP, SHUTDOWN, RUNTIME, DEBUG)
 
-O simulador de hidrômetro é uma aplicação multi-thread que simula o comportamento real de um medidor de água, incluindo:
+### 📊 Visualização Avançada
+- **Geração automática de imagens** a cada metro cúbico acumulado
+- **Escala dinâmica** que se ajusta automaticamente à vazão máxima do sistema
+- **Design realístico** com gradientes metálicos, displays digitais e ponteiro analógico
+- **Formato PNG** com qualidade profissional usando Cairo Graphics
 
-- **Cálculos hidráulicos** baseados na equação de Darcy-Weisbach
-- **Simulação em tempo real** com threads concorrentes
-- **Visualização gráfica** utilizando a biblioteca Cairo
-- **Monitoramento contínuo** do volume acumulado e vazão
+### 🔢 Sistema de Medição Consistente
+- **Unidades padronizadas** em metros cúbicos (m³) em toda a aplicação
+- **Conversões automáticas** entre L/min, m³/h e m³/s conforme necessário
+- **Display digital** formatado como hidrômetros reais (%06d format)
+- **Contador acumulativo** thread-safe com precisão de litros
+
+### ⚡ Arquitetura Multi-Thread
+- **Thread de entrada**: Captura comandos do usuário
+- **Thread de medição**: Atualiza contador e cálculos hidráulicos
+- **Thread de visualização**: Gera imagens periodicamente
+- **Sincronização thread-safe** com `std::atomic` e smart pointers
+
+## 🏗️ Arquitetura do Sistema
 
 ### Componentes Principais
 
-| Componente | Responsabilidade | Tecnologia |
-|------------|------------------|------------|
-| **Main** | Ponto de entrada e controle geral | C++ STL |
-| **Simulator** | Coordenação e gerenciamento de threads | std::thread, std::atomic |
-| **Hidrometer** | Lógica do hidrômetro e medição | std::atomic, smart pointers |
-| **Pipe** | Cálculos hidráulicos e fluxo | Equações matemáticas |
-| **Image** | Geração de visualização | Cairo Graphics |
+| Componente | Responsabilidade | Funcionalidades |
+|------------|------------------|-----------------|
+| **Simulator** | Controlador principal | Gerenciamento de threads, entrada do usuário, geração de imagens |
+| **Hidrometer** | Medidor digital | Contador thread-safe, cálculos de volume, status de ativação |
+| **Pipe** | Sistema hidráulico | Equação Darcy-Weisbach, regime de fluxo, vazão máxima dinâmica |
+| **Image** | Visualização | Escala dinâmica, design realístico, salvamento PNG |
+| **Logger** | Sistema de logs | Níveis estruturados, conversões de unidade, output organizado |
 
-## 📊 Diagrama de Classes Simplificado
+### Fluxo de Dados
 
-O diagrama básico mostra as relações fundamentais entre as classes:
+```
+Entrada do Usuário → Simulator → Hidrometer → Pipe → Cálculos Hidráulicos
+                         ↓
+                    Image Generator ← Logger ← Medições em Tempo Real
+```
 
+## 📊 Diagramas de Classes
+
+### Diagrama Simplificado
 ```plantuml
 @startuml
 !include docs/class_diagram.puml
 @enduml
 ```
 
-### Principais Relacionamentos
-
-- **Simulator** *compõe* um **Hidrometer** e uma **Image**
-- **Hidrometer** *compõe* dois **Pipe** (entrada e saída)
-- **Main** *cria e gerencia* o **Simulator**
-
-## 🔍 Diagrama de Classes Detalhado
-
-O diagrama detalhado inclui todos os métodos, atributos e anotações sobre padrões:
-
+### Diagrama Detalhado
 ```plantuml
 @startuml
 !include docs/detailed_class_diagram.puml
 @enduml
 ```
 
-### Características Técnicas
-
-#### Thread Safety
-- **Atomic Variables**: `std::atomic<bool>`, `std::atomic<int>` 
-- **Smart Pointers**: `std::unique_ptr` para gerenciamento automático
-- **Thread Management**: Threads dedicadas para cada operação
-
-#### Cálculos Hidráulicos
-- **Equação Darcy-Weisbach**: Perda de carga em tubulações
-- **Regime Turbulento/Laminar**: Detecção automática baseada no número de Reynolds
-- **Convergência Iterativa**: Método numérico para encontrar vazão exata
-
 ## ⏱️ Diagrama de Sequência
-
-O fluxo de execução mostra como as classes interagem durante a simulação:
-
 ```plantuml
 @startuml
 !include docs/sequence_diagram.puml
 @enduml
 ```
 
-### Fases de Execução
+## 🔧 Tecnologias Utilizadas
 
-1. **Inicialização**: Criação de objetos e configuração inicial
-2. **Ativação**: Start das threads e início da simulação
-3. **Execução**: Loops concorrentes de geração, medição e visualização
-4. **Monitoramento**: Verificação contínua de status pelo usuário
-5. **Finalização**: Parada controlada e limpeza de recursos
-
-## 🎯 Padrões de Projeto Utilizados
-
-### 1. **Composite Pattern**
-- **Contexto**: Hidrometer composto por 2 Pipes
-- **Benefício**: Tratamento uniforme de componentes hidráulicos
-
-### 2. **Strategy Pattern** 
-- **Contexto**: Diferentes estratégias de cálculo hidráulico (laminar/turbulento)
-- **Benefício**: Flexibilidade para diferentes regimes de fluxo
-
-### 3. **Observer Pattern**
-- **Contexto**: Threads observam mudanças de estado atomicamente
-- **Benefício**: Sincronização eficiente entre componentes
-
-### 4. **RAII (Resource Acquisition Is Initialization)**
-- **Contexto**: Smart pointers e destructors automáticos
-- **Benefício**: Gerenciamento seguro de memória e recursos
-
-### 5. **Controller Pattern**
-- **Contexto**: Simulator coordena todas as operações
-- **Benefício**: Separação clara de responsabilidades
-
-## 🛠️ Tecnologias e Bibliotecas
-
-### Core C++
-- **C++14 Standard**: Features modernas como auto, lambdas, smart pointers
-- **STL Threading**: `std::thread`, `std::atomic`, `std::chrono`
+### Core C++14
+- **Threading**: `std::thread`, `std::atomic<bool>`, `std::atomic<int>`
 - **Memory Management**: `std::unique_ptr`, RAII patterns
+- **Synchronization**: Thread-safe operations, non-blocking input
 
 ### Bibliotecas Externas
-- **Cairo Graphics**: Renderização 2D vetorial para PNG
-- **pkg-config**: Integração automática de dependências
-- **GNU Make**: Sistema de build multiplataforma
+- **Cairo Graphics**: Renderização vetorial PNG com gradientes e texto
+- **termios**: Controle de terminal para entrada não-bloqueante
+- **GNU Make**: Sistema de build com pkg-config integration
 
-### Cálculos Matemáticos
-- **Darcy-Weisbach Equation**: Cálculo de perda de carga
-- **Reynolds Number**: Determinação de regime de fluxo
+### Algoritmos Matemáticos
+- **Darcy-Weisbach**: Perda de carga em tubulações circulares
+- **Reynolds Number**: Determinação de regime (Re < 2300 laminar, Re > 4000 turbulento)
 - **Colebrook-White**: Fator de atrito para regime turbulento
+- **Convergência Iterativa**: Método numérico para vazão exata
 
-## 📈 Funcionalidades Implementadas
+## 🎯 Padrões de Projeto
 
-### ✅ Simulação Física
-- [x] Cálculo de vazão máxima baseado em ΔP
-- [x] Perda de carga realística (10%)
-- [x] Convergência numérica iterativa
-- [x] Validação de limites físicos
+### 1. **Composite Pattern**
+- **Implementação**: Hidrometer composto por Pipe IN + Pipe OUT
+- **Benefício**: Tratamento uniforme do sistema hidráulico
 
-### ✅ Concorrência
-- [x] Thread para geração de vazão variável
-- [x] Thread para atualização do hidrômetro
-- [x] Thread para geração de imagens
-- [x] Sincronização thread-safe
+### 2. **Strategy Pattern**
+- **Implementação**: Diferentes cálculos para regime laminar/turbulento
+- **Benefício**: Flexibilidade nos algoritmos hidráulicos
 
-### ✅ Visualização
-- [x] Geração dinâmica de imagens PNG
-- [x] Design realístico de hidrômetro
-- [x] Display digital com volume e vazão
-- [x] Ponteiro analógico proporcional
+### 3. **Observer Pattern**
+- **Implementação**: Threads observam mudanças via atomic variables
+- **Benefício**: Sincronização eficiente sem locks
 
-### ✅ Monitoramento
-- [x] Logs detalhados de depuração
-- [x] Status em tempo real
-- [x] Controle interativo (quit com 'q')
-- [x] Limite automático de volume
+### 4. **RAII Pattern**
+- **Implementação**: Smart pointers e destructors automáticos
+- **Benefício**: Gerenciamento seguro de recursos Cairo e threads
 
----
+### 5. **MVC Pattern**
+- **Implementação**: Simulator (Controller), Hidrometer (Model), Image (View)
+- **Benefício**: Separação clara de responsabilidades
 
-## 🚀 Como Usar os Diagramas
+## 🚀 Como Compilar e Executar
 
-Para visualizar os diagramas PlantUML:
+### Pré-requisitos
+```bash
+# Ubuntu/Debian
+sudo apt install build-essential libcairo2-dev pkg-config
 
-1. **Online**: Acesse [PlantUML Online Server](http://www.plantuml.com/plantuml/uml/)
-2. **VS Code**: Instale a extensão "PlantUML"
-3. **CLI**: Instale plantuml e execute `plantuml diagram.puml`
+# CentOS/RHEL
+sudo yum install gcc-c++ cairo-devel pkgconfig
 
-### Comandos para Gerar Imagens
+# macOS
+brew install cairo pkg-config
+```
+
+### Compilação
+```bash
+# Clone o repositório
+git clone https://github.com/marcovins/hydrometer-project-simulator.git
+cd hydrometer-project-simulator
+
+# Compile o projeto
+make clean && make
+
+# Execute o simulador
+./hidrometer_simulator
+```
+
+### Uso do Simulador
+1. **Iniciar**: Execute `./hidrometer_simulator`
+2. **Controlar vazão**: Use ↑↓←→ para ajustar a vazão
+3. **Monitorar**: Observe as 4 linhas de status em tempo real
+4. **Ver imagens**: Imagens são geradas automaticamente em `medicoes_202311250013/`
+5. **Sair**: Pressione ESC para finalizar
+
+## 📈 Funcionalidades Detalhadas
+
+### ✅ Sistema Hidráulico
+- [x] Vazão máxima calculada dinamicamente (17+ m³/h típico)
+- [x] Perda de carga realística (~10% entre entrada e saída)
+- [x] Convergência numérica com precisão de 0.001%
+- [x] Validação de limites físicos e sanitários
+
+### ✅ Interface e Controle
+- [x] Entrada não-bloqueante via termios
+- [x] Ajuste incremental de vazão (chunks de 2% da vazão máxima)
+- [x] Display organizado com contadores em m³
+- [x] Logs estruturados com conversão de unidades
+
+### ✅ Visualização Dinâmica
+- [x] Escala automática baseada na vazão máxima real
+- [x] Marcações principais e secundárias proporcionais
+- [x] Ponteiro analógico com normalização precisa
+- [x] Display digital com formato %06d (ex: "000001 L")
+
+### ✅ Geração de Imagens
+- [x] Trigger automático a cada 1000L (1m³) acumulado
+- [x] Resolução 400x400 com qualidade profissional
+- [x] Gradientes metálicos e efeitos realísticos
+- [x] Numeração sequencial (01.png, 02.png, ...)
+
+### ✅ Thread Safety
+- [x] Atomic counters para volume acumulado
+- [x] Atomic flags para controle de execução
+- [x] Smart pointers para gerenciamento de memória
+- [x] Sincronização sem deadlocks
+
+## 📊 Especificações Técnicas
+
+### Parâmetros Hidráulicos
+- **Diâmetro**: 15mm (padrão residencial)
+- **Comprimento**: 0.15m por tubulação
+- **Rugosidade**: 0.00005m (PVC/metal)
+- **Vazão máxima**: ~17 m³/h (calculada dinamicamente)
+
+### Performance
+- **Threads**: 3 threads concorrentes
+- **Frequência de atualização**: 50ms por ciclo
+- **Precisão de medição**: 1 litro
+- **Geração de imagens**: A cada 1000L acumulados
+
+### Formatos de Saída
+- **Imagens**: PNG 400x400 pixels
+- **Logs**: STDOUT com timestamps implícitos
+- **Medições**: Metros cúbicos (m³) padronizado
+- **Numeração**: Formato digital %06d
+
+## � Documentação e Diagramas
+
+### Visualizar Diagramas PlantUML
+
+Os diagramas de arquitetura estão em formato PlantUML na pasta `docs/`:
+
+- `architecture_overview.puml` - Visão geral da arquitetura
+- `class_diagram.puml` - Diagrama de classes simplificado  
+- `detailed_class_diagram.puml` - Diagrama de classes detalhado
+- `sequence_diagram.puml` - Diagrama de sequência
+
+#### Métodos para Visualização
+
+1. **VS Code**: Instale a extensão "PlantUML" 
+2. **Online**: [PlantUML Online Server](http://www.plantuml.com/plantuml/uml/)
+3. **CLI**: Instale plantuml localmente
 
 ```bash
-# Instalar PlantUML (Ubuntu/Debian)
+# Ubuntu/Debian
 sudo apt install plantuml
 
-# Gerar diagramas em PNG
+# Gerar imagens dos diagramas
 plantuml docs/*.puml
 
-# Gerar diagramas em SVG
+# Gerar em SVG (vetorial)
 plantuml -tsvg docs/*.puml
 ```
 
+### Documentação Adicional
+
+- `docs/CHANGELOG.md` - Histórico de melhorias e funcionalidades
+- `docs/README.md` - Documentação técnica detalhada
+- `docs/images/` - Diagramas exportados em PNG/SVG
+
 ---
+
+## 🤝 Contribuição
+
+### Estrutura de Branches
+- `main` - Versão estável
+- `develop` - Desenvolvimento ativo
+- `feature/*` - Novas funcionalidades  
+
+### Padrões de Código
+- C++14 standard
+- RAII patterns obrigatórios
+- Thread-safety com atomic operations
+- Documentação inline para métodos públicos
+
+---
+
+## 📄 Licença
+
+Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+---
+
+## 👥 Autores
+
+- **Marco Vinicius** - Desenvolvimento principal - [@marcovins](https://github.com/marcovins)
+
+---
+
+## 🙏 Agradecimentos
+
+- Biblioteca Cairo Graphics pela renderização profissional
+- Comunidade C++ pelas melhores práticas
+- Documentação PlantUML pela clareza dos diagramas

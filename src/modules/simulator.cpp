@@ -1,46 +1,85 @@
 #include "simulator.hpp"
-#include <random>
-#include <chrono>
-#include <iostream>
-#include <iomanip>
+#include "../utils/logger.hpp"
 
-    void Simulator::throwFlow() const{
-        std::cout << "[DEBUG] Simulator::throwFlow - Iniciando geração de vazão variável" << std::endl;
+    int Simulator::getKey() const {
+        struct termios oldt, newt;
+        int ch;
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt = oldt;
+        newt.c_lflag &= ~(ICANON | ECHO); // Desativa modo canônico e eco
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+        ch = getchar();
+        if (ch == 27) { // ESC ou sequência de escape
+            if (getchar() == 91) { // [
+                ch = getchar();
+                switch (ch) {
+                    case 'A': return KEY_UP;    // seta cima
+                    case 'B': return KEY_DOWN;  // seta baixo
+                    case 'C': return KEY_RIGHT; // seta direita
+                    case 'D': return KEY_LEFT;  // seta esquerda
+                    default: return 0;
+                }
+            } else {
+                return KEY_ESC; // ESC simples
+            }
+        }
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // Restaura configurações
+        return ch;
+    }
+
+    void Simulator::updateFlow(){
+        int input;
         float maxFlow = this->hidrometer->getPipeIN()->getMaxFlow();
-        std::cout << "[DEBUG] Simulator::throwFlow - Vazão máxima do pipe: " << std::fixed << std::setprecision(6) << maxFlow << " m³/s" << std::endl;
-        
+        float chunks = maxFlow / 50.0f;
+        float currentFlow = this->hidrometer->getPipeIN()->getFlowRate();
+
+
+        tcflush(STDIN_FILENO, TCIFLUSH);
+
         int iteration = 0;
         while (this->running.load()) {
             iteration++;
-            // Simula a variação da vazão no pipe de entrada
-            float newFlowRate = static_cast<float>(rand() % 100) / 100.0f * maxFlow; // Vazão entre 0.0 e maxFlow m^3/s
-            this->hidrometer->getPipeIN()->setFlowRate(newFlowRate);
-            
-            std::cout << "[DEBUG] Simulator::throwFlow - Iteração " << iteration 
-                      << ": Nova vazão = " << std::fixed << std::setprecision(6) << newFlowRate 
-                      << " m³/s (" << std::fixed << std::setprecision(2) << (newFlowRate/maxFlow*100) << "% do máximo)" << std::endl;
-            
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            input = this->getKey();
+            switch (input) {
+                case KEY_UP:
+                case KEY_RIGHT:
+                    currentFlow = this->hidrometer->getPipeIN()->getFlowRate();
+                    this->hidrometer->getPipeIN()->setFlowRate(currentFlow + chunks);
+                    tcflush(STDIN_FILENO, TCIFLUSH);
+                    break;
+
+                case KEY_DOWN: // seta baixo
+                case KEY_LEFT: // seta esquerda
+                    currentFlow = this->hidrometer->getPipeIN()->getFlowRate();
+                    this->hidrometer->getPipeIN()->setFlowRate(currentFlow - chunks);
+                    tcflush(STDIN_FILENO, TCIFLUSH); // Limpa buffer
+                    break;
+
+                case KEY_ESC: // ESC
+                    Logger::log(LogLevel::SHUTDOWN, "[INFO] Saída solicitada pelo usuário");
+                    this->running.store(false);
+                    tcflush(STDIN_FILENO, TCIFLUSH);
+                    break;
+                default:
+                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                    break;
+            }
         }
-        std::cout << "[DEBUG] Simulator::throwFlow - Thread de geração de vazão finalizada após " << iteration << " iterações" << std::endl;
+        Logger::log(LogLevel::SHUTDOWN, "[DEBUG] Simulator::updateFlow - Thread de geração de vazão finalizada após " + std::to_string(iteration) + " iterações");
     }
 
     Simulator::Simulator() {
-        std::cout << "[DEBUG] Simulator::Constructor - Iniciando construção do simulador" << std::endl;
         this->running.store(false);
-        std::cout << "[DEBUG] Simulator::Constructor - Status running: " << (this->running.load() ? "true" : "false") << std::endl;
         
-        std::cout << "[DEBUG] Simulator::Constructor - Criando hidrómetro com parâmetros padrão..." << std::endl;
-        this->hidrometer = std::make_unique<Hidrometer>(0.1f, 1.0f, 0.0001f, 0.1f, 1.0f, 0.0001f);
-        std::cout << "[DEBUG] Simulator::Constructor - Hidrómetro criado com sucesso" << std::endl;
-        std::cout << "[DEBUG] Simulator::Constructor - Imagem inicializada com tamanho padrão" << std::endl;
-        std::cout << "[DEBUG] Simulator::Constructor - Construção do simulador concluída" << std::endl;
+        // Hidrômetro residencial padrão com dimensões realísticas:
+        // Diâmetro: 15mm (0.015m) - padrão residencial
+        // Comprimento: 0.15m - tamanho típico de medidor residencial
+        // Rugosidade: 0.00005m - PVC/metal padrão residencial
+        this->hidrometer = std::make_unique<Hidrometer>(0.015f, 0.15f, 0.00005f, 0.015f, 0.15f, 0.00005f);
     }
 
     Simulator::~Simulator() {
-        std::cout << "[DEBUG] Simulator::Destructor - Iniciando destruição do simulador" << std::endl;
         stop();
-        std::cout << "[DEBUG] Simulator::Destructor - Destruição concluída" << std::endl;
     }
 
     Hidrometer* Simulator::getHidrometer() const { return this->hidrometer.get(); }
@@ -51,86 +90,78 @@
     bool Simulator::isRunning() const { return this->running.load(); }
 
     void Simulator::run() {
-        std::cout << "[DEBUG] Simulator::run - Iniciando simulação" << std::endl;
         this->running.store(true);
-        std::cout << "[DEBUG] Simulator::run - Status running definido como: " << (this->running.load() ? "true" : "false") << std::endl;
-        
-        std::cout << "[DEBUG] Simulator::run - Ativando hidrómetro..." << std::endl;
         this->hidrometer->activate();
-        
-        std::cout << "[DEBUG] Simulator::run - Iniciando thread de geração de vazão..." << std::endl;
-        this->inputThread = std::thread(&Simulator::throwFlow, this);
-        
-        std::cout << "[DEBUG] Simulator::run - Iniciando thread de atualização dinâmica de imagem..." << std::endl;
+        this->inputThread = std::thread(&Simulator::updateFlow, this);
         this->imageThread = std::thread(&Simulator::imageUpdateLoop, this);
-        
-        std::cout << "[DEBUG] Simulator::run - Simulação iniciada com sucesso (2 threads ativas)" << std::endl;
     }
 
     void Simulator::stop() {
-        std::cout << "[DEBUG] Simulator::stop - Iniciando parada da simulação" << std::endl;
+
         running.store(false);
-        std::cout << "[DEBUG] Simulator::stop - Status running definido como: " << (this->running.load() ? "true" : "false") << std::endl;
-        
-        std::cout << "[DEBUG] Simulator::stop - Desativando hidrómetro..." << std::endl;
         this->hidrometer->deactivate();
         
         if (inputThread.joinable()) {
-            std::cout << "[DEBUG] Simulator::stop - Aguardando finalização da thread de vazão..." << std::endl;
             inputThread.join();
-            std::cout << "[DEBUG] Simulator::stop - Thread de vazão finalizada" << std::endl;
         }
-        
         if (imageThread.joinable()) {
-            std::cout << "[DEBUG] Simulator::stop - Aguardando finalização da thread de imagem..." << std::endl;
             imageThread.join();
-            std::cout << "[DEBUG] Simulator::stop - Thread de imagem finalizada" << std::endl;
         }
-        
-        std::cout << "[DEBUG] Simulator::stop - Simulação parada com sucesso (todas as threads finalizadas)" << std::endl;
-    }
 
-    void Simulator::updateImage() const {
-        std::cout << "[DEBUG] Simulator::updateImage - Atualizando imagem do hidrômetro" << std::endl;
-        int counter = this->getCounter();
-        float flowRate = this->getPipeIN()->getFlowRate();
-        this->image.generate_image(counter, flowRate);
-        std::cout << "[DEBUG] Simulator::updateImage - Imagem atualizada com counter=" << counter << "L, flow=" << flowRate << "m³/s" << std::endl;
+        // Restaura configurações do terminal
+        struct termios term;
+        tcgetattr(STDIN_FILENO, &term);
+        term.c_lflag |= (ICANON | ECHO | ISIG); // Restaura modo normal
+        tcsetattr(STDIN_FILENO, TCSANOW, &term);
     }
 
     void Simulator::imageUpdateLoop() const {
-        std::cout << "[DEBUG] Simulator::imageUpdateLoop - Iniciando thread de atualização dinâmica de imagem" << std::endl;
         int updateCount = 0;
         
-        // Aguarda um pouco para o sistema se estabilizar
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        
+        int imageCounter = 1; // contador para nome do arquivo
+        int nextImageThreshold = 1; // Próximo marco para gerar imagem (em litros = 1m³)
+
         while (this->running.load()) {
             updateCount++;
+            int currentCounter = this->getCounter();
             
             try {
-                // Atualiza a imagem com dados atuais
-                int counter = this->getCounter();
-                float flowRate = this->getPipeIN()->getFlowRate();
-                
-                std::cout << "[DEBUG] Simulator::imageUpdateLoop - Update #" << updateCount 
-                          << " - Counter: " << counter << "L, Flow: " << std::fixed << std::setprecision(3) 
-                          << flowRate << "m³/s" << std::endl;
-                
-                // Tenta gerar a imagem
-                this->image.generate_image(counter, flowRate);
-                std::cout << "[DEBUG] Simulator::imageUpdateLoop - Imagem gerada com sucesso para update #" << updateCount << std::endl;
-                
+                // Verifica se atingiu o próximo metro cúbico (1000L)
+                if (currentCounter >= nextImageThreshold) {
+                    int counter = this->getCounter();
+                    float flowRate = this->getPipeIN()->getFlowRate();
+
+                    // Gerar nome do arquivo com zero à esquerda (01.jpeg, 02.jpeg, ..., 99.jpeg)
+                    std::ostringstream filename;
+                    filename << std::setw(2) << std::setfill('0') << imageCounter << ".jpeg";
+                    std::string fileNameStr = IMAGE_PATH + filename.str(); // concatena com o caminho
+
+                    Logger::log(LogLevel::DEBUG, "[DEBUG] Simulator::imageUpdateLoop - Update #" + 
+                            std::to_string(updateCount) + " - Counter: " + std::to_string(counter) + 
+                            "L (" + std::to_string(counter/1000.0) + "m³), Flow: " + std::to_string(flowRate) + "m³/s - File: " + fileNameStr);
+                    
+                    // Passa o caminho completo do arquivo como terceiro argumento
+                    float maxFlowRate = this->getPipeIN()->getMaxFlow();
+                    this->image.generate_image(counter, flowRate, maxFlowRate, fileNameStr);
+
+                    Logger::log(LogLevel::DEBUG, "[DEBUG] Simulator::imageUpdateLoop - Imagem gerada com sucesso para update #" + 
+                            std::to_string(updateCount) + " -> " + fileNameStr + " (Marco: " + std::to_string(nextImageThreshold/1000.0) + "m³)");
+
+                    // Atualiza para o próximo marco de 1m³ (1000L)
+                    nextImageThreshold += 1;
+                    
+                    // Atualiza contador de arquivo e volta para 1 após 99
+                    imageCounter++;
+                    if (imageCounter > 99) imageCounter = 1;
+                } else {
+                    // Aguarda um pouco antes de verificar novamente
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                }
+
             } catch (const std::exception& e) {
-                std::cout << "[ERROR] Simulator::imageUpdateLoop - Erro na geração de imagem: " << e.what() << std::endl;
+                Logger::log(LogLevel::DEBUG, "[ERROR] Simulator::imageUpdateLoop - Erro na geração de imagem: " + std::string(e.what()));
             } catch (...) {
-                std::cout << "[ERROR] Simulator::imageUpdateLoop - Erro desconhecido na geração de imagem" << std::endl;
+                Logger::log(LogLevel::DEBUG, "[ERROR] Simulator::imageUpdateLoop - Erro desconhecido na geração de imagem");
             }
-            
-            // Aguarda 3 segundos antes da próxima atualização
-            std::this_thread::sleep_for(std::chrono::seconds(3));
         }
-        
-        std::cout << "[DEBUG] Simulator::imageUpdateLoop - Thread de atualização de imagem finalizada após " 
-                  << updateCount << " atualizações" << std::endl;
     }

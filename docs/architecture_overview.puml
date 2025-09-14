@@ -1,7 +1,7 @@
 @startuml Architecture_Overview
 
 !theme plain
-title Arquitetura do Simulador de Hidrômetro\nVisão Geral dos Componentes e Fluxo de Dados
+title Arquitetura do Simulador de Hidrômetro v2.0\nArquitetura Multi-Thread com Visualização Dinâmica
 
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
@@ -12,28 +12,36 @@ skinparam rectangleFontSize 11
 !define LIGHTYELLOW #FFF9C4
 !define LIGHTPINK #FCE4EC
 !define LIGHTGRAY #F5F5F5
+!define LIGHTORANGE #FFF3E0
 
 package "Application Layer" LIGHTBLUE {
     [Main Application] as Main
-    note right of Main : Ponto de entrada\nControle do ciclo de vida
+    [Signal Handler] as Signals
+    [Logger System] as Logger
+    note right of Main : Ponto de entrada\nControle de sinais Ctrl+C\nGerenciamento do Logger
 }
 
-package "Control Layer" LIGHTGREEN {
+package "Control Layer (MVC Controller)" LIGHTGREEN {
     [Simulator Controller] as Simulator
-    note right of Simulator : Coordenação geral\nGerenciamento de threads\nOrquestração da simulação
+    [Input Thread] as InputThread
+    [Image Thread] as ImageThread
+    note right of Simulator : Coordenação multi-thread\nControle não-bloqueante (termios)\nGeração por marcos (1m³)
 }
 
-package "Business Logic" LIGHTYELLOW {
+package "Business Logic (MVC Model)" LIGHTYELLOW {
     [Hydrometer Entity] as Hydrometer
-    [Pipe Calculator] as Pipe
-    note right of Hydrometer : Lógica de medição\nContador de volume\nSimulação tempo real
-    note right of Pipe : Cálculos hidráulicos\nEquação Darcy-Weisbach\nValidação de limites
+    [Pipe Calculator IN] as PipeIN
+    [Pipe Calculator OUT] as PipeOUT
+    [Update Thread] as UpdateThread
+    note right of Hydrometer : Contador thread-safe (atomic)\nDimensões residenciais (15mm)\nMedição contínua background
+    note right of PipeIN : Darcy-Weisbach completo\nRegime laminar/turbulento\nVazão máxima dinâmica (~17 m³/h)
 }
 
-package "Presentation Layer" LIGHTPINK {
+package "Presentation Layer (MVC View)" LIGHTPINK {
     [Image Generator] as Image
     [Cairo Graphics] as Cairo
-    note right of Image : Visualização realística\nGeração PNG dinâmica
+    [Dynamic Scaling] as Scaling
+    note right of Image : Escala automática\nDesign realístico com gradientes\nTrigger a cada 1000L
 }
 
 package "Infrastructure" LIGHTGRAY {
@@ -41,13 +49,47 @@ package "Infrastructure" LIGHTGRAY {
     [Atomic Operations] as Atomic
     [Smart Pointers] as SmartPtr
     [File System] as FileSystem
+    [Terminal Control] as Terminal
 }
 
-' Main relationships
-Main --> Simulator : creates & controls
+package "Configuration" LIGHTORANGE {
+    [Constants] as Config
+    [Key Mappings] as Keys
+    [Log Levels] as LogLevels
+    note right of Config : Parâmetros residenciais\nConstantes físicas\nPaths de output
+}
+
+' Main relationships - Architecture
+Main --> Simulator : creates & manages
+Main --> Signals : registers handlers
+Main --> Logger : controls modes
+
+' Controller relationships
 Simulator --> Hydrometer : manages
 Simulator --> Image : coordinates
-Hydrometer --> Pipe : uses (2 instances)
+Simulator --> InputThread : spawns
+Simulator --> ImageThread : spawns
+
+' Model relationships  
+Hydrometer --> PipeIN : composes
+Hydrometer --> PipeOUT : composes
+Hydrometer --> UpdateThread : spawns
+
+' View relationships
+Image --> Cairo : uses
+Image --> Scaling : implements
+Image --> FileSystem : saves to
+
+' Threading relationships
+InputThread --> Terminal : controls
+ImageThread --> Image : triggers
+UpdateThread --> Hydrometer : updates
+
+' Infrastructure dependencies
+Simulator ..> Threads : uses
+Hydrometer ..> Atomic : uses
+Simulator ..> SmartPtr : uses
+All ..> Config : uses
 Image --> Cairo : renders with
 
 ' Infrastructure dependencies  

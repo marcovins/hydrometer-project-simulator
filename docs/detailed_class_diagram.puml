@@ -2,7 +2,7 @@
 
 !define RECTANGLE class
 
-title Diagrama de Classes Detalhado - Simulador de Hidrômetro\nPadrões: Singleton, Observer, Strategy, Composite
+title Diagrama de Classes Detalhado - Simulador de Hidrômetro v2.0\nPadrões: Composite, Strategy, Observer, RAII, MVC
 
 skinparam classAttributeIconSize 0
 skinparam classFontSize 10
@@ -11,9 +11,11 @@ skinparam packageStyle rectangle
 package "Main Application" {
     class Main {
         {static} + main() : int
+        {static} + signalHandler(int) : void
         --
         Ponto de entrada da aplicação
-        Gerencia ciclo de vida do simulador
+        Controle de sinais (Ctrl+C)
+        Gerenciamento do Logger
     }
 }
 
@@ -37,15 +39,15 @@ package "Core Simulation" {
         --
         + run() : void
         + stop() : void
-        + generateImage() : void
         --
-        - throwFlow() : void {thread}
-        - updateImage() : void
+        - getKey() : int
+        - updateFlow() : void {thread}
         - imageUpdateLoop() : void {thread}
         --
-        <<Controller Pattern>>
-        Coordena toda a simulação
-        Gerencia threads concorrentes
+        <<MVC Controller>>
+        Coordena simulação multi-thread
+        Entrada não-bloqueante (termios)
+        Geração de imagens por marco (1m³)
     }
 
     class Hidrometer {
@@ -57,7 +59,7 @@ package "Core Simulation" {
         - status : atomic<bool>
         - counterFloat : float
         ==
-        + Hidrometer(diameterIN: float = 0.1f,\n            lengthIN: float = 1.0f,\n            roughnessIN: float = 0.0001f,\n            diameterOUT: float = 0.1f,\n            lengthOUT: float = 1.0f,\n            roughnessOUT: float = 0.0001f)
+        + Hidrometer(diameterIN: float = 0.015f,\n            lengthIN: float = 0.15f,\n            roughnessIN: float = 0.00005f,\n            diameterOUT: float = 0.015f,\n            lengthOUT: float = 0.15f,\n            roughnessOUT: float = 0.00005f)
         + ~Hidrometer()
         --
         + getPipeIN() : Pipe*
@@ -70,9 +72,10 @@ package "Core Simulation" {
         --
         - update() : void {thread}
         --
-        <<Entity Pattern>>
-        Simula comportamento real de hidrômetro
-        Thread-safe com atomic operations
+        <<MVC Model>>
+        Dimensões residenciais padrão (15mm)
+        Counter thread-safe com precisão de litros
+        Medição contínua em background
     }
 }
 
@@ -95,7 +98,13 @@ package "Hydraulic System" {
         + maxFlowForDeltaP(deltaP: double = 100000,\n                   rho: double = 998.0,\n                   mu: double = 1.002e-3,\n                   g: double = 9.80665) : double
         + setFlowRate(flowRate: float) : void
         --
-        <<Entity Pattern>>
+        <<Strategy Pattern>>
+        Equação Darcy-Weisbach completa
+        Detecção automática de regime (Re)
+        Colebrook-White para turbulento
+        Convergência iterativa (precisão 0.001%)
+    }
+}
         Implementa equação Darcy-Weisbach
         Calcula perdas de carga hidráulicas
     }
@@ -111,42 +120,113 @@ package "Visualization" {
         + Image(width: int = 400, height: int = 400)
         + ~Image()
         --
-        + generate_image(counter: int, flowRate: float) : void
+        + generate_image(counter: int, flowRate: float,\n                maxFlowRate: float, name: string) : void
         --
-        <<Utility Pattern>>
-        Gera imagens PNG com Cairo
-        Visualização realística do hidrômetro
+        <<MVC View>>
+        Escala dinâmica baseada em maxFlowRate
+        Design realístico com gradientes Cairo
+        Ponteiro proporcional à vazão atual
+        Display digital formato %06d L
+    }
+}
+
+package "Utilities" {
+    enum LogLevel {
+        STARTUP
+        SHUTDOWN  
+        RUNTIME
+        DEBUG
+    }
+    
+    class Logger <<static>> {
+        {static} - currentMode : LogLevel
+        ==
+        {static} + log(level: LogLevel, message: string) : void
+        {static} + setMode(mode: LogLevel) : void
+        {static} + logRuntime(status: string, counter: double,\n                      flowIN: double, flowOUT: double) : void
+        --
+        Sistema de logs estruturado
+        Conversão automática de unidades (m³)
+        Output organizado em 4 linhas
     }
 }
 
 package "Configuration" {
-    class HidrometerConstants <<static>> {
-        {static} + DIAMETER_IN : float = 0.1f
-        {static} + LENGTH_IN : float = 1.0f
-        {static} + ROUGHNESS_IN : float = 0.0001f
-        {static} + DIAMETER_OUT : float = 0.1f
-        {static} + LENGTH_OUT : float = 1.0f
-        {static} + ROUGHNESS_OUT : float = 0.0001f
+    enum Key {
+        KEY_UP = 1000
+        KEY_DOWN = 1001
+        KEY_RIGHT = 1002
+        KEY_LEFT = 1003
+        KEY_ESC = 27
     }
     
-    class PhysicsConstants <<static>> {
-        {static} + M_PI : double = 3.14159265358979323846
-        {static} + RHO : double = 998.0 {Densidade água kg/m³}
-        {static} + MU : double = 1.002e-3 {Viscosidade Pa·s}
-        {static} + G : double = 9.80665 {Gravidade m/s²}
-    }
-    
-    class ImageConstants <<static>> {
+    class Constants <<static>> {
+        {static} + IMAGE_PATH : string = "medicoes_202311250013/"
         {static} + DEFAULT_WIDTH : int = 400
         {static} + DEFAULT_HEIGHT : int = 400
-    }
+        --
+        Parâmetros Residenciais Padrão:
+        {static} + DIAMETER : float = 0.015f {15mm}
+        {static} + LENGTH : float = 0.15f {150mm}
+        {static} + ROUGHNESS : float = 0.00005f {PVC/metal}
+        --
+        Constantes Físicas:
+        {static} + RHO : double = 998.0 {kg/m³}
+        {static} + MU : double = 1.002e-3 {Pa·s}
+        {static} + G : double = 9.80665 {m/s²}
 }
 
-' Relationships
+' Relationships - Arquitetura Principal
 Main --> Simulator : "creates & manages"
 Simulator *-- Hidrometer : "composition\n1..1"
 Simulator *-- Image : "composition\n1..1"
-Hidrometer *-- Pipe : "composition\n1..2"
+Hidrometer *-- Pipe : "composition\n1..2 (IN/OUT)"
+
+' Dependencies - Funcionalidades
+Simulator ..> Logger : "uses"
+Simulator ..> Key : "uses"
+Image ..> Constants : "uses"
+Pipe ..> Constants : "uses"
+
+' Threading Relationships
+Simulator ||--|| Simulator : "inputThread"
+Simulator ||--|| Simulator : "imageThread"
+Hidrometer ||--|| Hidrometer : "updateThread"
+
+' Notes sobre Padrões
+note right of Simulator
+  **MVC Controller**
+  - Gerencia 3 threads concorrentes
+  - Entrada não-bloqueante (termios)
+  - Geração de imagens por marco
+  - Controle de vazão incremental
+end note
+
+note right of Hidrometer  
+  **MVC Model + Composite**
+  - Contador thread-safe (atomic)
+  - Composição de 2 Pipes
+  - Medição contínua background
+  - Dimensões residenciais padrão
+end note
+
+note right of Image
+  **MVC View + Strategy**
+  - Escala dinâmica automática
+  - Cairo Graphics profissional
+  - Trigger a cada 1000L (1m³)
+  - Design realístico completo
+end note
+
+note right of Pipe
+  **Strategy Pattern**
+  - Darcy-Weisbach completo
+  - Regime laminar/turbulento
+  - Convergência iterativa
+  - Colebrook-White equation
+end note
+
+@enduml
 
 ' Dependencies
 Simulator ..> HidrometerConstants : "uses"

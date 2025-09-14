@@ -1,58 +1,81 @@
-#include "modules/simulator.hpp"
 #include <iostream>
+#include <thread>
+#include <chrono>
+#include <csignal>
+#include <termios.h>
+#include <unistd.h>
+#include "src/modules/simulator.hpp"
+#include "src/utils/logger.hpp"
 
-using namespace std;
+// Variável global para controlar finalização
+Simulator* globalSimulator = nullptr;
+
+// Handler para Ctrl+C
+void signalHandler(int signal) {
+    if (signal == SIGINT && globalSimulator != nullptr) {
+        Logger::log(LogLevel::SHUTDOWN, "\n[INFO] Ctrl+C detectado - Finalizando...");
+        globalSimulator->stop();
+        
+        // Restaura terminal
+        struct termios term;
+        tcgetattr(STDIN_FILENO, &term);
+        term.c_lflag |= (ICANON | ECHO | ISIG);
+        tcsetattr(STDIN_FILENO, TCSANOW, &term);
+        
+        exit(0);
+    }
+}
 
 int main() {
-    cout << "========================================" << endl;
-    cout << "[INFO] SIMULADOR DE HIDRÓMETRO INICIANDO" << endl;
-    cout << "========================================" << endl;
+    // Configura handler para Ctrl+C
+    signal(SIGINT, signalHandler);
     
-    cout << "[INFO] Criando instância do simulador..." << endl;
+    // Ativa modo debug apenas no início
+    Logger::setDebugMode(true);
+    Logger::setRuntimeMode(false);
+    
+    Logger::log(LogLevel::STARTUP, "========================================");
+    Logger::log(LogLevel::STARTUP, "[INFO] SIMULADOR DE HIDRÓMETRO INICIANDO");
+    Logger::log(LogLevel::STARTUP, "========================================");
+    Logger::log(LogLevel::STARTUP, "[INFO] Criando instância do simulador...");
+    
     Simulator simulator;
+    globalSimulator = &simulator; // Define ponteiro global para o handler
     
-    cout << "[INFO] Iniciando simulação..." << endl;
+    Logger::log(LogLevel::STARTUP, "[INFO] Iniciando simulação...");
     simulator.run();
-
-    // Aguarda um pouco para a simulação inicializar
-    this_thread::sleep_for(chrono::milliseconds(500));
     
-    cout << "\n[INFO] ====== STATUS INICIAL ======" << endl;
-    cout << "[INFO] Hidrómetro status: " << (simulator.getHidrometer()->getStatus() ? "Active" : "Inactive") << endl;
-    cout << "[INFO] Contador inicial: " << simulator.getCounter() << " L" << endl;
-    cout << "[INFO] Simulação rodando: " << (simulator.isRunning() ? "Sim" : "Não") << endl;
-    cout << "[INFO] ==============================" << endl;
+    Logger::log(LogLevel::STARTUP, "");
+    Logger::log(LogLevel::STARTUP, "[INFO] ====== STATUS INICIAL ======");
+    Logger::log(LogLevel::STARTUP, "[INFO] Hidrómetro status: Active");
+    Logger::log(LogLevel::STARTUP, "[INFO] Contador inicial: 0 L");
+    Logger::log(LogLevel::STARTUP, "[INFO] Simulação rodando: Sim");
+    Logger::log(LogLevel::STARTUP, "[INFO] ==============================");
+    Logger::log(LogLevel::STARTUP, "");
+    Logger::log(LogLevel::STARTUP, "[INFO] === MODO MONITORAMENTO ===");
+    Logger::log(LogLevel::STARTUP, "[INFO] Use as setas ↑↓←→ para ajustar vazão");
+    Logger::log(LogLevel::STARTUP, "[INFO] Pressione ESC para sair");
+    Logger::log(LogLevel::STARTUP, "");
     
-    cout << "\n[INFO] Monitorando simulação (pressione 'q' + Enter para sair)..." << endl;
-    while(simulator.isRunning() && simulator.getCounter() < 200) {
-        
-        this_thread::sleep_for(chrono::seconds(2));
-        
-        // Verifica se há input disponível (não bloqueante)
-        cin.sync();
-        if (cin.rdbuf()->in_avail() > 0) {
-            char input;
-            cin >> input;
-            if (input == 'q' || input == 'Q') {
-                cout << "[INFO] Saída solicitada pelo usuário" << endl;
-                break;
-            }
-        }
-
+    // Agora muda para modo runtime (apenas 4 linhas visíveis)
+    Logger::setDebugMode(false);
+    Logger::setRuntimeMode(true);
+    Logger::clearRuntimeArea();
+    
+    // Loop de monitoramento - verifica se o simulador ainda está rodando
+    while (simulator.isRunning()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     
-    cout << "\n[INFO] ====== STATUS FINAL ======" << endl;
-    cout << "[INFO] Contador final: " << simulator.getCounter() << " L" << endl;
-    cout << "[INFO] =============================" << endl;
+    // Volta para modo de finalização
+    Logger::setRuntimeMode(false);
+    Logger::setDebugMode(true);
     
-    cout << "\n[INFO] Parando simulação..." << endl;
+    Logger::log(LogLevel::SHUTDOWN, "");
+    Logger::log(LogLevel::SHUTDOWN, "[INFO] Finalizando simulação...");
     simulator.stop();
-    
-    cout << "[INFO] Simulação finalizada com sucesso!" << endl;
-    cout << "[INFO] A imagem 'hidrometro.png' foi atualizada dinamicamente durante a execução!" << endl;
-    cout << "========================================" << endl;
-
-    cout << "Hidrometer status: " << (simulator.getHidrometer()->getStatus() ? "Active" : "Inactive") << endl;
+    Logger::log(LogLevel::SHUTDOWN, "[INFO] Simulação finalizada com sucesso!");
+    Logger::log(LogLevel::SHUTDOWN, "========================================");
 
     return 0;
 }

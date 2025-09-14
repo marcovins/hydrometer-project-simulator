@@ -4,16 +4,13 @@
 #include <iomanip>
 
 Image::Image(int width, int height) {
-    std::cout << "[DEBUG] Image::Constructor - Criando imagem " << width << "x" << height << std::endl;
     this->width = width;
     this->height = height;
     this->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, this->width, this->height);
     this->cr = cairo_create(this->surface);
-    std::cout << "[DEBUG] Image::Constructor - Surface Cairo criada com sucesso" << std::endl;
 }
 
 Image::~Image() {
-    std::cout << "[DEBUG] Image::Destructor - Liberando recursos Cairo" << std::endl;
     if (this->cr) {
         cairo_destroy(this->cr);
         this->cr = nullptr;
@@ -22,20 +19,22 @@ Image::~Image() {
         cairo_surface_destroy(this->surface);
         this->surface = nullptr;
     }
-    std::cout << "[DEBUG] Image::Destructor - Recursos liberados" << std::endl;
 }
 
-void Image::generate_image(int counter, float flowRate) const {
+void Image::generate_image(int counter, float flowRate, float maxFlowRate, std::string name) const {
     // Log apenas a cada 5 atualizações para não poluir o output
     static int callCount = 0;
     callCount++;
-    bool shouldLog = (callCount % 5 == 0);
+
+    // Calcula escala dinâmica baseada na vazão máxima
+    float maxFlowRate_m3h = maxFlowRate * 3600.0f; // Converte para m³/h
+    // Arredonda para cima para o próximo múltiplo de 5 para uma escala limpa
+    int scaleMax = ((int)(maxFlowRate_m3h + 4) / 5) * 5;
+    if (scaleMax < 10) scaleMax = 10; // Mínimo de 10 m³/h para legibilidade
     
-    if (shouldLog) {
-        std::cout << "[DEBUG] Image::generate_image - Update #" << callCount 
-                  << " - Gerando imagem com counter=" << counter << "L, flow=" 
-                  << std::fixed << std::setprecision(3) << flowRate << "m³/s" << std::endl;
-    }
+    // Calcula incrementos da escala
+    int majorStep = scaleMax / 5; // 5 marcações principais
+    int minorStep = majorStep / 2; // Marcações menores entre as principais
 
     // Fundo gradiente (simulando ambiente)
     cairo_pattern_t *gradient = cairo_pattern_create_radial(this->width/2, this->height/2, 0, 
@@ -82,14 +81,15 @@ void Image::generate_image(int counter, float flowRate) const {
     cairo_set_line_width(this->cr, 2);
     cairo_stroke(this->cr);
 
-    // Escala principal com números
+    // Escala principal com números (dinâmica baseada na vazão máxima)
     cairo_set_source_rgb(this->cr, 0.1, 0.1, 0.15);
     cairo_set_line_width(this->cr, 3);
     cairo_select_font_face(this->cr, "Arial", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size(this->cr, 14);
+    cairo_set_font_size(this->cr, 12);
     
-    for (int i = 0; i < 12; i++) {
-        double angle = i * M_PI / 6.0 - M_PI/2; // Começando do topo
+    // Marcações principais cobrindo 270° (de -90° a +180°) - escala dinâmica
+    for (int i = 0; i <= scaleMax; i += majorStep) {
+        double angle = -M_PI/2 + (i * M_PI * 1.5 / scaleMax); // Distribui ao longo de 270°
         
         // Marcações principais
         double x1 = centerX + 135 * cos(angle);
@@ -101,7 +101,7 @@ void Image::generate_image(int counter, float flowRate) const {
         cairo_line_to(this->cr, x2, y2);
         cairo_stroke(this->cr);
         
-        // Números na escala (0 a 11, representando m³/h * 10)
+        // Números na escala dinâmica
         std::string numText = std::to_string(i);
         cairo_text_extents_t extents;
         cairo_text_extents(this->cr, numText.c_str(), &extents);
@@ -111,27 +111,28 @@ void Image::generate_image(int counter, float flowRate) const {
         cairo_show_text(this->cr, numText.c_str());
     }
     
-    // Marcações secundárias (entre os números principais)
+    // Marcações secundárias (incrementos menores)
     cairo_set_line_width(this->cr, 1.5);
-    for (int i = 0; i < 60; i++) {
-        if (i % 5 != 0) { // Pula as marcações principais
-            double angle = i * M_PI / 30.0 - M_PI/2;
-            double x1 = centerX + 135 * cos(angle);
-            double y1 = centerY + 135 * sin(angle);
-            double x2 = centerX + 127 * cos(angle);
-            double y2 = centerY + 127 * sin(angle);
-            
-            cairo_move_to(this->cr, x1, y1);
-            cairo_line_to(this->cr, x2, y2);
-            cairo_stroke(this->cr);
-        }
+    for (int i = minorStep; i < scaleMax; i += majorStep) {
+        double angle = -M_PI/2 + (i * M_PI * 1.5 / scaleMax);
+        double x1 = centerX + 135 * cos(angle);
+        double y1 = centerY + 135 * sin(angle);
+        double x2 = centerX + 127 * cos(angle);
+        double y2 = centerY + 127 * sin(angle);
+        
+        cairo_move_to(this->cr, x1, y1);
+        cairo_line_to(this->cr, x2, y2);
+        cairo_stroke(this->cr);
     }
 
     // Ponteiro principal (baseado na vazão)
-    // Normaliza a vazão para a escala (0.25 m³/s máximo = escala completa)
-    double normalizedFlow = flowRate / 0.25; // Assumindo vazão máxima de 0.25 m³/s
+    // Converte a vazão para m³/h para normalização proporcional
+    float flowRate_m3h = flowRate * 3600.0f; // m³/s para m³/h
+    // Normaliza com base na escala dinâmica
+    double normalizedFlow = flowRate_m3h / scaleMax; // Escala dinâmica
     if (normalizedFlow > 1.0) normalizedFlow = 1.0; // Limita ao máximo
-    double pointerAngle = -M_PI/2 + (normalizedFlow * M_PI * 1.8); // 324° de rotação
+    if (normalizedFlow < 0.0) normalizedFlow = 0.0; // Limita ao mínimo
+    double pointerAngle = -M_PI/2 + (normalizedFlow * M_PI * 1.5); // 270° de rotação
     
     // Sombra do ponteiro
     cairo_set_source_rgba(this->cr, 0, 0, 0, 0.3);
@@ -214,7 +215,8 @@ void Image::generate_image(int counter, float flowRate) const {
     cairo_set_font_size(this->cr, 14);
     
     char volumeDisplay[25];
-    snprintf(volumeDisplay, sizeof(volumeDisplay), "%06d L", counter);
+    // Formato decimal com 6 dígitos e zeros à esquerda
+    snprintf(volumeDisplay, sizeof(volumeDisplay), "%06d m³", counter);
     cairo_text_extents_t displayExtents;
     cairo_text_extents(this->cr, volumeDisplay, &displayExtents);
     cairo_move_to(this->cr, centerX - displayExtents.width/2, this->height - 85);
@@ -225,7 +227,8 @@ void Image::generate_image(int counter, float flowRate) const {
     cairo_set_font_size(this->cr, 12);
     
     char flowDisplay[25];
-    snprintf(flowDisplay, sizeof(flowDisplay), "%.3f m³/s", flowRate);
+    // Usa a variável flowRate_m3h já declarada anteriormente
+    snprintf(flowDisplay, sizeof(flowDisplay), "%.4f m³/h", flowRate_m3h);
     cairo_text_extents_t flowExtents;
     cairo_text_extents(this->cr, flowDisplay, &flowExtents);
     cairo_move_to(this->cr, centerX - flowExtents.width/2, this->height - 65);
@@ -251,7 +254,7 @@ void Image::generate_image(int counter, float flowRate) const {
     // Unidade de medida
     cairo_set_source_rgb(this->cr, 0.4, 0.4, 0.4);
     cairo_set_font_size(this->cr, 10);
-    std::string unitText = "m³/h x10";
+    std::string unitText = "m³/h";
     cairo_text_extents_t unitExtents;
     cairo_text_extents(this->cr, unitText.c_str(), &unitExtents);
     cairo_move_to(this->cr, centerX - unitExtents.width/2, centerY - 60);
@@ -261,7 +264,8 @@ void Image::generate_image(int counter, float flowRate) const {
     cairo_set_source_rgb(this->cr, 0.0, 0.4, 0.8);
     cairo_set_font_size(this->cr, 12);
     char flowIndicator[30];
-    snprintf(flowIndicator, sizeof(flowIndicator), "%.3f m³/s", flowRate);
+    // Usa a variável flowRate_m3h já declarada anteriormente
+    snprintf(flowIndicator, sizeof(flowIndicator), "%.4f m³/h", flowRate_m3h);
     cairo_text_extents_t flowIndicatorExtents;
     cairo_text_extents(this->cr, flowIndicator, &flowIndicatorExtents);
     cairo_move_to(this->cr, centerX - flowIndicatorExtents.width/2, centerY + 25);
@@ -277,9 +281,5 @@ void Image::generate_image(int counter, float flowRate) const {
     cairo_show_text(this->cr, title);
 
     // Salva a imagem
-    cairo_surface_write_to_png(this->surface, "hidrometro.png");
-    
-    if (shouldLog) {
-        std::cout << "[DEBUG] Image::generate_image - Hidrômetro realístico salvo como 'hidrometro.png'" << std::endl;
-    }
+    cairo_surface_write_to_png(this->surface, name.c_str());
 }
