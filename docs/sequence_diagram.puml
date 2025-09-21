@@ -1,135 +1,91 @@
-@startuml Hydrometer_Sequence_Diagram
+@startuml Sequence_Diagram
 
-title Diagrama de Sequência - Simulador de Hidrômetro
+title Diagrama de Sequência - Simulação de Hidrômetro
 
-actor User
-participant Main
-participant Simulator
-participant Hidrometer  
-participant "PipeIN : Pipe" as PipeIN
-participant "PipeOUT : Pipe" as PipeOUT
-participant Image
-participant "InputThread" as IT
-participant "ImageThread" as ImgT
-participant "UpdateThread" as UT
+skinparam sequenceMessageAlign center
+skinparam backgroundColor #FAFAFA
+skinparam participantBackgroundColor #E6F2FF
+skinparam participantBorderColor #333333
+skinparam actorBackgroundColor #FFE6E6
+skinparam actorBorderColor #333333
+
+actor Usuario as U
+participant Main as M
+participant Simulator as S
+participant Hidrometer as H
+participant PipeIN as PI
+participant PipeOUT as PO
+participant Image as I
 
 == Inicialização ==
-User -> Main : Executar programa
-activate Main
+U -> M : Executa programa
+M -> S : new Simulator()
+S -> H : new Hidrometer()
+S -> I : new Image()
+H -> PI : new Pipe(entrada)
+H -> PO : new Pipe(saída)
 
-Main -> Simulator : new Simulator()
-activate Simulator
+== Ativação ==
+M -> S : run()
+S -> S : criar threads
+activate S
 
-Simulator -> Hidrometer : new Hidrometer()
-activate Hidrometer
-
-Hidrometer -> PipeIN : new Pipe(diameter, length, roughness)
-activate PipeIN
-PipeIN -> PipeIN : calculateMaxFlow()
-PipeIN --> Hidrometer : Pipe criado
-
-Hidrometer -> PipeOUT : new Pipe(diameter, length, roughness)
-activate PipeOUT
-PipeOUT -> PipeOUT : calculateMaxFlow()
-PipeOUT --> Hidrometer : Pipe criado
-
-Hidrometer -> UT : std::thread(&Hidrometer::update)
-activate UT
-note right : Thread própria do hidrômetro\ninicia em loop contínuo
-
-Hidrometer --> Simulator : Hidrometer criado
-
-Simulator -> Image : new Image(400, 400)
-activate Image
-Image -> Image : cairo_create_surface()
-Image --> Simulator : Image criada
-
-Simulator --> Main : Simulator criado
-
-== Execução da Simulação ==
-Main -> Simulator : run()
-
-Simulator -> Hidrometer : activate()
-Hidrometer -> Hidrometer : status = true
-
-Simulator -> IT : std::thread(&Simulator::throwFlow)
-activate IT
-
-Simulator -> ImgT : std::thread(&Simulator::imageUpdateLoop)
-activate ImgT
-
-loop Geração de Vazão (InputThread)
-    IT -> PipeIN : setFlowRate(randomFlow)
-    PipeIN -> PipeIN : validar vazão <= maxFlow
-    IT -> PipeOUT : setFlowRate(flowIN * 0.9)
-    note right : Perda de 10% simulada
-    IT -> IT : sleep(1000ms)
+== Thread de Vazão ==
+loop Simulação ativa
+    S -> PI : calculateFlow(deltaP)
+    PI -> PI : Darcy-Weisbach
+    PI --> S : vazão calculada
+    S -> H : setFlowRate(vazão)
+    H -> PO : updateFlow()
+    S -> S : sleep(100ms)
 end
 
-loop Atualização Hidrômetro (UpdateThread)
-    UT -> PipeOUT : getFlowRate()
-    PipeOUT --> UT : currentFlow
-    UT -> UT : volume += flow * deltaTime * 1000
-    UT -> UT : counter = (int)counterFloat
-    UT -> UT : sleep(100ms)
+== Thread de Imagem ==
+loop A cada 1m³
+    S -> I : generateHidrometerImage()
+    I -> H : getVolume()
+    I -> H : getFlowRate()
+    I -> I : drawPointer()
+    I -> I : drawDisplay()
+    I -> I : saveImage()
+    S -> S : sleep(500ms)
 end
 
-loop Geração de Imagens (ImageThread)
-    ImgT -> Hidrometer : getCounter()
-    Hidrometer --> ImgT : currentCounter
-    ImgT -> PipeIN : getFlowRate()
-    PipeIN --> ImgT : currentFlow
-    ImgT -> Image : generate_image(counter, flow)
-    Image -> Image : draw_realistic_hydrometer()
-    Image -> Image : cairo_surface_write_to_png()
-    ImgT -> ImgT : sleep(3000ms)
-end
-
-== Monitoramento ==
-loop Monitoramento (Main Thread)
-    Main -> Simulator : getCounter()
-    Simulator -> Hidrometer : getCounter()
-    Hidrometer --> Simulator : counter
-    Simulator --> Main : counter
-    Main -> Main : display status
-    Main -> Main : check user input
-    alt User presses 'q'
-        Main -> Main : break loop
-    else Counter >= 200L
-        Main -> Main : break loop
+== Thread Principal ==
+loop Monitoramento
+    U -> M : pressiona tecla
+    alt tecla == 'q'
+        M -> S : stop()
+        S -> S : running = false
+    else tecla == 's'
+        M -> S : getStatus()
+        S --> M : volume, vazão, status
+        M --> U : exibe informações
     end
-    Main -> Main : sleep(2000ms)
 end
 
 == Finalização ==
-Main -> Simulator : stop()
+deactivate S
+S -> H : destructor
+S -> I : destructor
+M --> U : Programa encerrado
 
-Simulator -> Hidrometer : deactivate()
-Hidrometer -> Hidrometer : status = false
-Hidrometer -> UT : running = false
-deactivate UT
+note over S
+  Padrão Observer
+  Threads observam estado
+  atomicamente
+end note
 
-Simulator -> IT : running = false
-deactivate IT
+note over H
+  Thread Safety
+  atomic<bool>, atomic<float>
+  para sincronização
+end note
 
-Simulator -> ImgT : running = false  
-deactivate ImgT
-
-Simulator -> Simulator : join all threads
-
-Main -> Simulator : ~Simulator()
-Simulator -> Hidrometer : ~Hidrometer()
-Hidrometer -> PipeIN : ~Pipe()
-deactivate PipeIN
-Hidrometer -> PipeOUT : ~Pipe()
-deactivate PipeOUT
-deactivate Hidrometer
-
-Simulator -> Image : ~Image()
-Image -> Image : cairo_destroy()
-deactivate Image
-
-deactivate Simulator
-deactivate Main
+note over PI, PO
+  Strategy Pattern
+  Diferentes estratégias
+  para regime laminar/turbulento
+end note
 
 @enduml

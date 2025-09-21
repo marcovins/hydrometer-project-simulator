@@ -75,7 +75,7 @@
         // Diâmetro: 15mm (0.015m) - padrão residencial
         // Comprimento: 0.15m - tamanho típico de medidor residencial
         // Rugosidade: 0.00005m - PVC/metal padrão residencial
-        this->hidrometer = std::make_unique<Hidrometer>(0.015f, 0.15f, 0.00005f, 0.015f, 0.15f, 0.00005f);
+        this->hidrometer = std::make_unique<Hidrometer>();
     }
 
     Simulator::~Simulator() {

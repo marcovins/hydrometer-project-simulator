@@ -1,130 +1,252 @@
-@startuml Hydrometer_Simulator_Class_Diagram
+@startuml Hydrometer_Detailed_Class_Diagram
 
-title Diagrama de Classes - Simulador de Hidrômetro
+!define RECTANGLE class
 
-' Main function
-class Main {
-    + main() : int
-}
+title Diagrama de Classes Detalhado - SHA v2.0\nPadrões: Composite, Strategy, Observer, RAII, MVC
 
-' Simulator class
-class Simulator {
-    - running : atomic<bool>
-    - hidrometer : unique_ptr<Hidrometer>
-    - inputThread : thread
-    - imageThread : thread
-    - image : Image
+skinparam classAttributeIconSize 0
+skinparam classFontSize 10
+skinparam packageStyle rectangle
+' ========================
+' Configuração Global
+' ========================
+
+skinparam backgroundColor #FAFAFA
+skinparam packageBackgroundColor #F9F9F9
+skinparam packageBorderColor #333333
+skinparam packageTitleAlignment center
+skinparam packageStyle rectangle
+skinparam classBackgroundColor #E6F2FF
+skinparam classBorderColor #333333
+skinparam classFontColor #111111
+skinparam classFontSize 11
+skinparam classAttributeIconSize 0
+skinparam enumBackgroundColor #F3E6FF
+skinparam enumBorderColor #333333
+skinparam stereotypeCBackgroundColor #E6FFF5
+skinparam stereotypeABackgroundColor #FFD9D9
+skinparam noteBackgroundColor #FFF9DB
+skinparam noteBorderColor #333333
+skinparam noteFontColor #111111
+skinparam noteFontSize 12
+skinparam noteFontName "Consolas"
+skinparam noteRoundCorner 15
+skinparam noteShadowing true
+skinparam notePadding 8
+skinparam noteBorderThickness 1
+skinparam noteTextAlignment left
+skinparam titleFontSize 20
+skinparam defaultFontName "Segoe UI"
+skinparam minClassWidth 100
+skinparam wrapWidth 250
+skinparam maxMessageSize 60
+
+    class Main <<function>> {
+        {static} + main() : int
+        {static} + signalHandler(int signal) : void
+        --
+        Ponto de entrada da aplicação
+        Controle de sinais (Ctrl+C)
+        Ponteiro global para Simulator
+        Configuração terminal (termios)
+    }
+
+    class Simulator {
+        - running : atomic<bool>
+        - hidrometer : unique_ptr<Hidrometer>
+        - inputThread : thread
+        - imageThread : thread  
+        - image : Image
+        ==
+        + Simulator()
+        + ~Simulator()
+        --
+        + getHidrometer() : Hidrometer*
+        + getPipeIN() : Pipe*
+        + getPipeOUT() : Pipe* 
+        + getCounter() : int
+        + getHidrometerStatus() : bool
+        + isRunning() : bool
+        --
+        + run() : void
+        + stop() : void
+        + generateImage() : void
+        --
+        - getKey() : int
+        - updateFlow() : void {thread}
+        - updateImage() : void
+        - imageUpdateLoop() : void {thread}
+        --
+        <<MVC Controller>>
+        Coordena simulação multi-thread
+        Entrada não-bloqueante (termios)
+        Geração de imagens por marco (1m³)
+        Controle incremental de vazão (chunks)
+    }
+
+    class Pipe {
+        - flowRate : float
+        - maxFlow : float
+        - diameter : float
+        - length : float  
+        - roughness : float
+        ==
+        + Pipe(diameter: float, length: float, roughness: float)
+        --
+        + getDiameter() : float
+        + getLength() : float
+        + getRoughness() : float
+        + getFlowRate() : float
+        + getMaxFlow() : float
+        --
+        + maxFlowForDeltaP(deltaP: double = 100000,\n                   rho: double = 998.0,\n                   mu: double = 1.002e-3,\n                   g: double = 9.80665) : double
+        + setFlowRate(flowRate: float) : void
+        --
+        <<Strategy Pattern>>
+        Equação Darcy-Weisbach completa
+        Detecção automática de regime (Re)
+        Colebrook-White para turbulento
+        Convergência iterativa (precisão 0.001%)
+    }
+
+    class Hidrometer {
+        - pipeIN : unique_ptr<Pipe>
+        - pipeOUT : unique_ptr<Pipe>
+        - update_thread : thread
+        - running : atomic<bool>
+        - counter : atomic<int>
+        - status : atomic<bool>
+        - counterFloat : float
+        ==
+        + Hidrometer(diameterIN: float = 0.015f,\n            lengthIN: float = 0.15f,\n            roughnessIN: float = 0.00005f,\n            diameterOUT: float = 0.015f,\n            lengthOUT: float = 0.15f,\n            roughnessOUT: float = 0.00005f)
+        + ~Hidrometer()
+        --
+        + getPipeIN() : Pipe*
+        + getPipeOUT() : Pipe*
+        + getCounter() : int
+        + getStatus() : bool
+        --
+        + activate() : void
+        + deactivate() : void
+        --
+        - update() : void {thread}
+        --
+        <<MVC Model>>
+        Dimensões residenciais padrão (15mm)
+        Counter thread-safe com precisão de litros
+        Medição contínua em background
+    }
+
+    class Image {
+        - surface : cairo_surface_t*
+        - cr : cairo_t*
+        - width : int
+        - height : int
+        ==
+        + Image(width: int = 400, height: int = 400)
+        + ~Image()
+        --
+        + generate_image(counter: int, flowRate: float,\n                maxFlowRate: float, name: string) : void
+        --
+        <<MVC View>>
+        Escala dinâmica baseada em maxFlowRate
+        Design realístico com gradientes Cairo
+        Ponteiro proporcional à vazão atual
+        Display digital formato %06d L
+    }
+
+    enum LogLevel <<enum class>> {
+        STARTUP
+        SHUTDOWN  
+        RUNTIME
+        DEBUG
+    }
     
-    + Simulator()
-    + ~Simulator()
-    + getHidrometer() : Hidrometer*
-    + getPipeIN() : Pipe*
-    + getPipeOUT() : Pipe*
-    + getCounter() : int
-    + getHidrometerStatus() : bool
-    + isRunning() : bool
-    + run() : void
-    + stop() : void
-    + generateImage() : void
-    
-    - throwFlow() : void
-    - updateImage() : void
-    - imageUpdateLoop() : void
-}
+    class Logger <<static>> {
+        {static} - showDebug : bool
+        {static} - runtimeStarted : bool
+        ==
+        {static} + setDebugMode(enabled: bool) : void
+        {static} + setRuntimeMode(started: bool) : void
+        {static} + log(level: LogLevel, message: string) : void
+        {static} + logRuntime(status: string, flowIN: float,\n                      flowOUT: float, newCounter: int) : void
+        {static} + clearRuntimeArea() : void
+        --
+        Sistema de logs estruturado
+        Conversão automática de unidades (m³/h)
+        Interface runtime com 4 linhas fixas
+        Clear screen com códigos ANSI
+    }
 
-' Hidrometer class
-class Hidrometer {
-    - pipeIN : unique_ptr<Pipe>
-    - pipeOUT : unique_ptr<Pipe>
-    - update_thread : thread
-    - running : atomic<bool>
-    - counter : atomic<int>
-    - status : atomic<bool>
-    - counterFloat : float
-    
-    + Hidrometer(diameterIN: float, lengthIN: float, roughnessIN: float, diameterOUT: float, lengthOUT: float, roughnessOUT: float)
-    + ~Hidrometer()
-    + getPipeIN() : Pipe*
-    + getPipeOUT() : Pipe*
-    + getCounter() : int
-    + getStatus() : bool
-    + activate() : void
-    + deactivate() : void
-    
-    - update() : void
-}
 
-' Pipe class
-class Pipe {
-    - flowRate : float
-    - maxFlow : float
-    - diameter : float
-    - length : float
-    - roughness : float
-    
-    + Pipe(diameter: float, length: float, roughness: float)
-    + getDiameter() : float
-    + getLength() : float
-    + getRoughness() : float
-    + getFlowRate() : float
-    + getMaxFlow() : float
-    + maxFlowForDeltaP(deltaP: double, rho: double, mu: double, g: double) : double
-    + setFlowRate(flowRate: float) : void
-}
+    enum Key {
+        KEY_UP = 1000
+        KEY_DOWN = 1001
+        KEY_RIGHT = 1002
+        KEY_LEFT = 1003
+        KEY_ESC = 27
+    }
 
-' Image class
-class Image {
-    - surface : cairo_surface_t*
-    - cr : cairo_t*
-    - width : int
-    - height : int
-    
-    + Image(width: int, height: int)
-    + ~Image()
-    + generate_image(counter: int, flowRate: float) : void
-}
+    class Constants <<defines>> {
+        Image Constants:
+        DEFAULT_WIDTH = 400
+        DEFAULT_HEIGHT = 400
+        IMAGE_PATH = "medicoes_202311250013/"
+        --
+        Physics Constants (Pipe):
+        M_PI = 3.14159265358979323846
+        RHO = 998.0 {kg/m³}
+        MU = 1.002e-3 {Pa·s}
+        G = 9.80665 {m/s²}
+        --
+        Hidrometer Constants:
+        DIAMETER_IN/OUT = 0.015f {15mm}
+        LENGTH_IN/OUT = 0.15f {150mm}
+        ROUGHNESS_IN/OUT = 0.00005f {PVC/metal}
+    }
 
-' Constants classes for organization
-class Constants {
-    {static} + DIAMETER_IN : float = 0.1f
-    {static} + LENGTH_IN : float = 1.0f  
-    {static} + ROUGHNESS_IN : float = 0.0001f
-    {static} + DIAMETER_OUT : float = 0.1f
-    {static} + LENGTH_OUT : float = 1.0f
-    {static} + ROUGHNESS_OUT : float = 0.0001f
-    {static} + DEFAULT_WIDTH : int = 400
-    {static} + DEFAULT_HEIGHT : int = 400
-    {static} + M_PI : double = 3.14159265358979323846
-    {static} + RHO : double = 998.0
-    {static} + MU : double = 1.002e-3
-    {static} + G : double = 9.80665
-}
+' Relationships - Arquitetura Principal
+Main ..> Simulator : "creates & manages"
+Simulator *-- Hidrometer : "composition\n1..1"
+Simulator *-- Image : "composition\n1..1"
+Hidrometer *-- Pipe : "composition\n1..2 (IN/OUT)"
 
-' Relationships
-Main --> Simulator : creates
-Simulator *-- Hidrometer : contains
-Simulator *-- Image : contains
-Simulator ..> Constants : uses
-Hidrometer *-- Pipe : contains 2
-Hidrometer ..> Constants : uses
-Pipe ..> Constants : uses
-Image ..> Constants : uses
+' Dependencies - Funcionalidades
+Simulator ..> Logger : "uses"
+Simulator --> Key : "defines & uses"
+Logger --> LogLevel : "uses"
+Main ..> Logger : "uses"
 
-' Composition relationships
-Simulator ||--|| Hidrometer : "1"
-Hidrometer ||--|| Pipe : "2 (IN/OUT)"
-Simulator ||--|| Image : "1"
+' Threading Relationships
+Simulator ||--|| Simulator : "inputThread"
+Simulator ||--|| Simulator : "imageThread"
+Hidrometer ||--|| Hidrometer : "updateThread"
 
-' Threading relationships
-note top of Simulator : Gerencia threads para:\n- Geração de vazão\n- Atualização de imagem
-note top of Hidrometer : Possui thread própria\npara atualização contínua
-note right of Image : Utiliza biblioteca Cairo\npara geração de imagens PNG
+' Constants Dependencies
+Hidrometer ..> Constants : "uses #defines"
+Pipe ..> Constants : "uses #defines"
+Image ..> Constants : "uses #defines"
 
-' Stereotypes
-Simulator : <<Controller>>
-Hidrometer : <<Entity>>
-Pipe : <<Entity>>
-Image : <<Utility>>
-Constants : <<Static>>
+' Patterns annotations
+note as N1
+    **Padrões Implementados:**
+    • **Composite**: Hidrometer + 2 Pipes
+    • **Strategy**: Cálculos hidráulicos (Darcy-Weisbach)
+    • **Observer**: Threads observam atomic variables
+    • **RAII**: Smart pointers para gerenciamento de recursos
+    • **Singleton**: Logger com métodos estáticos
+    ---
+    **Threading Architecture:**
+    • Main Thread: Loop de monitoramento principal
+    • Input Thread: Captura não-bloqueante (termios)
+    • Image Thread: Geração assíncrona de PNG
+    • Update Thread: Medição contínua do hidrômetro
+    ---
+    **Key Technical Details:**
+    • atomic<bool> para thread-safety
+    • termios para input não-bloqueante
+    • Cairo Graphics para renderização
+    • #define para constantes (não classes)
+end note
 
 @enduml

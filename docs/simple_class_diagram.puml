@@ -1,0 +1,75 @@
+@startuml Simple_Class_Diagram
+
+title Diagrama de Classes Simplificado - Simulador de Hidrômetro
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam backgroundColor #FAFAFA
+skinparam classBackgroundColor #E6F2FF
+skinparam classBorderColor #333333
+skinparam packageBackgroundColor #F9F9F9
+skinparam packageBorderColor #333333
+
+class Main {
+    + main() : int
+    + signalHandler() : void
+}
+
+class Simulator {
+    - running : atomic<bool>
+    - hidrometer : unique_ptr<Hidrometer>
+    - image : Image
+    + run() : void
+    + stop() : void
+    + generateImage() : void
+}
+
+class Hidrometer {
+    - volume : atomic<float>
+    - flowRate : atomic<float>
+    - running : atomic<bool>
+    + update() : void
+    + getVolume() : float
+    + getFlowRate() : float
+}
+
+class Pipe {
+    - diameter : float
+    - length : float
+    - roughness : float
+    - flowRate : float
+    + calculateFlow() : float
+    + getMaxFlow() : float
+}
+
+class Image {
+    - counter : int
+    + generateHidrometerImage() : void
+    + drawPointer() : void
+    + drawDisplay() : void
+}
+
+Main --> Simulator : "cria e gerencia"
+Simulator *-- Hidrometer : "compõe"
+Simulator *-- Image : "compõe"
+Hidrometer *-- "2" Pipe : "entrada e saída"
+
+note right of Simulator
+  **Padrão MVC Controller**
+  Coordena simulação
+  multi-thread
+end note
+
+note right of Hidrometer
+  **Padrão Composite**
+  Composto por 2 Pipes
+  (entrada e saída)
+end note
+
+note bottom of Pipe
+  **Cálculos Hidráulicos**
+  Equação Darcy-Weisbach
+  Regime turbulento/laminar
+end note
+
+@enduml

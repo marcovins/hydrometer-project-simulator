@@ -34,11 +34,7 @@ O simulador de hidrômetro é uma aplicação multi-thread que simula o comporta
 
 O diagrama básico mostra as relações fundamentais entre as classes:
 
-```plantuml
-@startuml
-!include docs/class_diagram.puml
-@enduml
-```
+![Diagrama de Classes Simplificado](docs/images/Simple_Class_Diagram.png)
 
 ### Principais Relacionamentos
 
@@ -50,11 +46,9 @@ O diagrama básico mostra as relações fundamentais entre as classes:
 
 O diagrama detalhado inclui todos os métodos, atributos e anotações sobre padrões:
 
-```plantuml
-@startuml
-!include docs/detailed_class_diagram.puml
-@enduml
-```
+![Diagrama de Classes Detalhado](docs/images/Hydrometer_Detailed_Class_Diagram.png)
+
+> 💡 **Versão vetorial:** Para melhor qualidade, visualize o arquivo [SVG](docs/images/Hydrometer_Detailed_Class_Diagram.svg) ou [PDF](docs/images/Hydrometer_Detailed_Class_Diagram.pdf)
 
 ### Características Técnicas
 
@@ -72,11 +66,9 @@ O diagrama detalhado inclui todos os métodos, atributos e anotações sobre pad
 
 O fluxo de execução mostra como as classes interagem durante a simulação:
 
-```plantuml
-@startuml
-!include docs/sequence_diagram.puml
-@enduml
-```
+![Diagrama de Sequência](docs/images/Sequence_Diagram.png)
+
+> 💡 **Versões alternativas:** [SVG](docs/images/Sequence_Diagram.svg) | [PDF](docs/images/Sequence_Diagram.pdf)
 
 ### Fases de Execução
 
@@ -155,23 +147,51 @@ O fluxo de execução mostra como as classes interagem durante a simulação:
 
 ## 🚀 Como Usar os Diagramas
 
-Para visualizar os diagramas PlantUML:
+### 📁 Estrutura de Arquivos
 
-1. **Online**: Acesse [PlantUML Online Server](http://www.plantuml.com/plantuml/uml/)
-2. **VS Code**: Instale a extensão "PlantUML"
-3. **CLI**: Instale plantuml e execute `plantuml diagram.puml`
+```
+docs/
+├── class_diagram.puml           # Diagrama detalhado (fonte)
+├── simple_class_diagram.puml    # Diagrama simplificado (fonte)
+├── sequence_diagram.puml        # Diagrama de sequência (fonte)
+└── images/
+    ├── *.png                    # Versões PNG (para README)
+    ├── *.svg                    # Versões vetoriais
+    └── *.pdf                    # Versões para impressão
+```
 
-### Comandos para Gerar Imagens
+### 🔧 Regenerar Diagramas
+
+Para atualizar os diagramas após modificações no código:
 
 ```bash
-# Instalar PlantUML (Ubuntu/Debian)
+# Executar script automatizado
+./generate_diagrams.sh
+
+# Ou gerar manualmente
+plantuml -tpng docs/*.puml
+plantuml -tsvg docs/*.puml
+plantuml -tpdf docs/*.puml
+```
+
+### 🌐 Visualização Online
+
+Para visualizar os arquivos `.puml` online:
+1. Acesse [PlantUML Online Server](http://www.plantuml.com/plantuml/uml/)
+2. Cole o conteúdo do arquivo `.puml`
+3. Visualize o resultado
+
+### 📦 Instalação do PlantUML
+
+```bash
+# Ubuntu/Debian
 sudo apt install plantuml
 
-# Gerar diagramas em PNG
-plantuml docs/*.puml
+# macOS
+brew install plantuml
 
-# Gerar diagramas em SVG
-plantuml -tsvg docs/*.puml
+# Windows
+choco install plantuml
 ```
 
 ---

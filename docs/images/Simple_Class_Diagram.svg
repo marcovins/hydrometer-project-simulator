@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="837px" preserveAspectRatio="none" style="width:663px;height:837px;background:#FAFAFA;" version="1.1" viewBox="0 0 663 837" width="663px" zoomAndPan="magnify"><defs><filter height="300%" id="f1546dl9m2zyg" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="539" x="65" y="16.708">Diagrama de Classes Simplificado - Simulador de Hidrômetro</text><!--MD5=[84718776d214be480e4c259efcb737fc]
+class Main--><rect fill="#E6F2FF" filter="url(#f1546dl9m2zyg)" height="73.6094" id="Main" style="stroke: #333333; stroke-width: 1.5;" width="142" x="239.5" y="28.9531"/><ellipse cx="291.75" cy="44.9531" fill="#ADD1B2" rx="11" ry="11" style="stroke: #333333; stroke-width: 1.0;"/><path d="M294.7188,50.5938 Q294.1406,50.8906 293.5,51.0313 Q292.8594,51.1875 292.1563,51.1875 Q289.6563,51.1875 288.3281,49.5469 Q287.0156,47.8906 287.0156,44.7656 Q287.0156,41.6406 288.3281,39.9844 Q289.6563,38.3281 292.1563,38.3281 Q292.8594,38.3281 293.5,38.4844 Q294.1563,38.6406 294.7188,38.9375 L294.7188,41.6563 Q294.0938,41.0781 293.5,40.8125 Q292.9063,40.5313 292.2813,40.5313 Q290.9375,40.5313 290.25,41.6094 Q289.5625,42.6719 289.5625,44.7656 Q289.5625,46.8594 290.25,47.9375 Q290.9375,49 292.2813,49 Q292.9063,49 293.5,48.7344 Q294.0938,48.4531 294.7188,47.875 L294.7188,50.5938 Z "/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="29" x="312.25" y="49.1074">Main</text><line style="stroke: #333333; stroke-width: 1.5;" x1="240.5" x2="380.5" y1="60.9531" y2="60.9531"/><line style="stroke: #333333; stroke-width: 1.5;" x1="240.5" x2="380.5" y1="68.9531" y2="68.9531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="71" x="245.5" y="83.1636">+main() : int</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="130" x="245.5" y="95.9683">+signalHandler() : void</text><!--MD5=[e78d3bd29d68b8fbdb4aae8710e3db25]
+class Simulator--><rect fill="#E6F2FF" filter="url(#f1546dl9m2zyg)" height="124.8281" id="Simulator" style="stroke: #333333; stroke-width: 1.5;" width="233" x="194" y="179.9531"/><ellipse cx="276.75" cy="195.9531" fill="#ADD1B2" rx="11" ry="11" style="stroke: #333333; stroke-width: 1.0;"/><path d="M279.7188,201.5938 Q279.1406,201.8906 278.5,202.0313 Q277.8594,202.1875 277.1563,202.1875 Q274.6563,202.1875 273.3281,200.5469 Q272.0156,198.8906 272.0156,195.7656 Q272.0156,192.6406 273.3281,190.9844 Q274.6563,189.3281 277.1563,189.3281 Q277.8594,189.3281 278.5,189.4844 Q279.1563,189.6406 279.7188,189.9375 L279.7188,192.6563 Q279.0938,192.0781 278.5,191.8125 Q277.9063,191.5313 277.2813,191.5313 Q275.9375,191.5313 275.25,192.6094 Q274.5625,193.6719 274.5625,195.7656 Q274.5625,197.8594 275.25,198.9375 Q275.9375,200 277.2813,200 Q277.9063,200 278.5,199.7344 Q279.0938,199.4531 279.7188,198.875 L279.7188,201.5938 Z "/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="59" x="297.25" y="200.1074">Simulator</text><line style="stroke: #333333; stroke-width: 1.5;" x1="195" x2="426" y1="211.9531" y2="211.9531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="139" x="200" y="226.1636">-running : atomic&lt;bool&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="221" x="200" y="238.9683">-hidrometer : unique_ptr&lt;Hidrometer&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="86" x="200" y="251.7729">-image : Image</text><line style="stroke: #333333; stroke-width: 1.5;" x1="195" x2="426" y1="258.3672" y2="258.3672"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="71" x="200" y="272.5776">+run() : void</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="77" x="200" y="285.3823">+stop() : void</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="138" x="200" y="298.187">+generateImage() : void</text><!--MD5=[4285a8eeb13093a62a2d8316f05da5d4]
+class Hidrometer--><rect fill="#E6F2FF" filter="url(#f1546dl9m2zyg)" height="124.8281" id="Hidrometer" style="stroke: #333333; stroke-width: 1.5;" width="157" x="23" y="381.9531"/><ellipse cx="62.75" cy="397.9531" fill="#ADD1B2" rx="11" ry="11" style="stroke: #333333; stroke-width: 1.0;"/><path d="M65.7188,403.5938 Q65.1406,403.8906 64.5,404.0313 Q63.8594,404.1875 63.1563,404.1875 Q60.6563,404.1875 59.3281,402.5469 Q58.0156,400.8906 58.0156,397.7656 Q58.0156,394.6406 59.3281,392.9844 Q60.6563,391.3281 63.1563,391.3281 Q63.8594,391.3281 64.5,391.4844 Q65.1563,391.6406 65.7188,391.9375 L65.7188,394.6563 Q65.0938,394.0781 64.5,393.8125 Q63.9063,393.5313 63.2813,393.5313 Q61.9375,393.5313 61.25,394.6094 Q60.5625,395.6719 60.5625,397.7656 Q60.5625,399.8594 61.25,400.9375 Q61.9375,402 63.2813,402 Q63.9063,402 64.5,401.7344 Q65.0938,401.4531 65.7188,400.875 L65.7188,403.5938 Z "/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="70" x="82.25" y="402.1074">Hidrometer</text><line style="stroke: #333333; stroke-width: 1.5;" x1="24" x2="179" y1="413.9531" y2="413.9531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="138" x="29" y="428.1636">-volume : atomic&lt;float&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="145" x="29" y="440.9683">-flowRate : atomic&lt;float&gt;</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="139" x="29" y="453.7729">-running : atomic&lt;bool&gt;</text><line style="stroke: #333333; stroke-width: 1.5;" x1="24" x2="179" y1="460.3672" y2="460.3672"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="91" x="29" y="474.5776">+update() : void</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="114" x="29" y="487.3823">+getVolume() : float</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="122" x="29" y="500.187">+getFlowRate() : float</text><!--MD5=[4dfa3bfde5407297cdf87f3e284398fb]
+class Pipe--><rect fill="#E6F2FF" filter="url(#f1546dl9m2zyg)" height="124.8281" id="Pipe" style="stroke: #333333; stroke-width: 1.5;" width="141" x="31" y="583.9531"/><ellipse cx="83.75" cy="599.9531" fill="#ADD1B2" rx="11" ry="11" style="stroke: #333333; stroke-width: 1.0;"/><path d="M86.7188,605.5938 Q86.1406,605.8906 85.5,606.0313 Q84.8594,606.1875 84.1563,606.1875 Q81.6563,606.1875 80.3281,604.5469 Q79.0156,602.8906 79.0156,599.7656 Q79.0156,596.6406 80.3281,594.9844 Q81.6563,593.3281 84.1563,593.3281 Q84.8594,593.3281 85.5,593.4844 Q86.1563,593.6406 86.7188,593.9375 L86.7188,596.6563 Q86.0938,596.0781 85.5,595.8125 Q84.9063,595.5313 84.2813,595.5313 Q82.9375,595.5313 82.25,596.6094 Q81.5625,597.6719 81.5625,599.7656 Q81.5625,601.8594 82.25,602.9375 Q82.9375,604 84.2813,604 Q84.9063,604 85.5,603.7344 Q86.0938,603.4531 86.7188,602.875 L86.7188,605.5938 Z "/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="27" x="104.25" y="604.1074">Pipe</text><line style="stroke: #333333; stroke-width: 1.5;" x1="32" x2="171" y1="615.9531" y2="615.9531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="92" x="37" y="630.1636">-diameter : float</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="76" x="37" y="642.9683">-length : float</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="102" x="37" y="655.7729">-roughness : float</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="89" x="37" y="668.5776">-flowRate : float</text><line style="stroke: #333333; stroke-width: 1.5;" x1="32" x2="171" y1="675.1719" y2="675.1719"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="129" x="37" y="689.3823">+calculateFlow() : float</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="119" x="37" y="702.187">+getMaxFlow() : float</text><!--MD5=[964f074a2dd77d134c21b891bb53e381]
+class Image--><rect fill="#E6F2FF" filter="url(#f1546dl9m2zyg)" height="99.2188" id="Image" style="stroke: #333333; stroke-width: 1.5;" width="214" x="412.5" y="394.9531"/><ellipse cx="496.25" cy="410.9531" fill="#ADD1B2" rx="11" ry="11" style="stroke: #333333; stroke-width: 1.0;"/><path d="M499.2188,416.5938 Q498.6406,416.8906 498,417.0313 Q497.3594,417.1875 496.6563,417.1875 Q494.1563,417.1875 492.8281,415.5469 Q491.5156,413.8906 491.5156,410.7656 Q491.5156,407.6406 492.8281,405.9844 Q494.1563,404.3281 496.6563,404.3281 Q497.3594,404.3281 498,404.4844 Q498.6563,404.6406 499.2188,404.9375 L499.2188,407.6563 Q498.5938,407.0781 498,406.8125 Q497.4063,406.5313 496.7813,406.5313 Q495.4375,406.5313 494.75,407.6094 Q494.0625,408.6719 494.0625,410.7656 Q494.0625,412.8594 494.75,413.9375 Q495.4375,415 496.7813,415 Q497.4063,415 498,414.7344 Q498.5938,414.4531 499.2188,413.875 L499.2188,416.5938 Z "/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="38" x="516.75" y="415.1074">Image</text><line style="stroke: #333333; stroke-width: 1.5;" x1="413.5" x2="625.5" y1="426.9531" y2="426.9531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="73" x="418.5" y="441.1636">-counter : int</text><line style="stroke: #333333; stroke-width: 1.5;" x1="413.5" x2="625.5" y1="447.7578" y2="447.7578"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="202" x="418.5" y="461.9683">+generateHidrometerImage() : void</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="120" x="418.5" y="474.7729">+drawPointer() : void</text><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="121" x="418.5" y="487.5776">+drawDisplay() : void</text><path d="M462,214.9531 L462,238.4531 L427.25,242.4531 L462,246.4531 L462,270.3516 A0,0 0 0 0 462,270.3516 L651,270.3516 A0,0 0 0 0 651,270.3516 L651,224.9531 L641,214.9531 L462,214.9531 A0,0 0 0 0 462,214.9531 " fill="#FBFB77" filter="url(#f1546dl9m2zyg)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M641,214.9531 L641,224.9531 L651,224.9531 L641,214.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="168" x="468" y="232.02">Padrão MVC Controller</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="131" x="468" y="247.1528">Coordena simulação</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="79" x="468" y="262.2856">multi-thread</text><path d="M215.5,416.9531 L215.5,440.4531 L180.34,444.4531 L215.5,448.4531 L215.5,472.3516 A0,0 0 0 0 215.5,472.3516 L377.5,472.3516 A0,0 0 0 0 377.5,472.3516 L377.5,426.9531 L367.5,416.9531 L215.5,416.9531 A0,0 0 0 0 215.5,416.9531 " fill="#FBFB77" filter="url(#f1546dl9m2zyg)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M367.5,416.9531 L367.5,426.9531 L377.5,426.9531 L367.5,416.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="137" x="221.5" y="434.02">Padrão Composite</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="141" x="221.5" y="449.1528">Composto por 2 Pipes</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="110" x="221.5" y="464.2856">(entrada e saída)</text><path d="M6,769.9531 L6,825.3516 A0,0 0 0 0 6,825.3516 L197,825.3516 A0,0 0 0 0 197,825.3516 L197,779.9531 L187,769.9531 L105.5,769.9531 L101.5,709.3431 L97.5,769.9531 L6,769.9531 A0,0 0 0 0 6,769.9531 " fill="#FBFB77" filter="url(#f1546dl9m2zyg)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M187,769.9531 L187,779.9531 L197,779.9531 L187,769.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="148" x="12" y="787.02">Cálculos Hidráulicos</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="161" x="12" y="802.1528">Equação Darcy-Weisbach</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="170" x="12" y="817.2856">Regime turbulento/laminar</text><!--MD5=[1506b1e4c800484870c4753578afeffe]
+link Main to Simulator--><path d="M310.5,103.1131 C310.5,123.8031 310.5,150.4131 310.5,174.7531 " fill="none" id="Main-&gt;Simulator" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="310.5,179.9131,314.5,170.9131,310.5,174.9131,306.5,170.9131,310.5,179.9131" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="94" x="311.5" y="146.02">cria e gerencia</text><!--MD5=[afe401bdb76e54f99d631d5d37bdf810]
+reverse link Simulator to Hidrometer--><path d="M236.39,314.3731 C213.43,336.3431 188.32,360.3731 166.06,381.6731 " fill="none" id="Simulator&lt;-Hidrometer" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="246.09,305.0931,238.9898,306.3531,237.422,313.3917,244.5222,312.1317,246.09,305.0931" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="52" x="213.5" y="348.02">compõe</text><!--MD5=[7414a9462ccd3652c86654364f452892]
+reverse link Simulator to Image--><path d="M384.6,314.3631 C412.39,340.9531 443.33,370.5631 468.56,394.7031 " fill="none" id="Simulator&lt;-Image" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="374.91,305.0931,376.4778,312.1317,383.578,313.3917,382.0102,306.3531,374.91,305.0931" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="52" x="421.5" y="348.02">compõe</text><!--MD5=[ca4bd7dbc188d05c213b640a8d1422a3]
+reverse link Hidrometer to Pipe--><path d="M101.5,520.2131 C101.5,541.1231 101.5,563.6031 101.5,583.6731 " fill="none" id="Hidrometer&lt;-Pipe" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="101.5,507.0931,97.5,513.0931,101.5,519.0931,105.5,513.0931,101.5,507.0931" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="100" x="102.5" y="550.02">entrada e saída</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="8" x="93.0625" y="573.0698">2</text><!--MD5=[691341bd5e79dd2a2f2c72e8140bebf8]
+@startuml Simple_Class_Diagram
+
+title Diagrama de Classes Simplificado - Simulador de Hidrômetro
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam backgroundColor #FAFAFA
+skinparam classBackgroundColor #E6F2FF
+skinparam classBorderColor #333333
+skinparam packageBackgroundColor #F9F9F9
+skinparam packageBorderColor #333333
+
+class Main {
+    + main() : int
+    + signalHandler() : void
+}
+
+class Simulator {
+    - running : atomic<bool>
+    - hidrometer : unique_ptr<Hidrometer>
+    - image : Image
+    + run() : void
+    + stop() : void
+    + generateImage() : void
+}
+
+class Hidrometer {
+    - volume : atomic<float>
+    - flowRate : atomic<float>
+    - running : atomic<bool>
+    + update() : void
+    + getVolume() : float
+    + getFlowRate() : float
+}
+
+class Pipe {
+    - diameter : float
+    - length : float
+    - roughness : float
+    - flowRate : float
+    + calculateFlow() : float
+    + getMaxFlow() : float
+}
+
+class Image {
+    - counter : int
+    + generateHidrometerImage() : void
+    + drawPointer() : void
+    + drawDisplay() : void
+}
+
+Main - -> Simulator : "cria e gerencia"
+Simulator *- - Hidrometer : "compõe"
+Simulator *- - Image : "compõe"
+Hidrometer *- - "2" Pipe : "entrada e saída"
+
+note right of Simulator
+  **Padrão MVC Controller**
+  Coordena simulação
+  multi-thread
+end note
+
+note right of Hidrometer
+  **Padrão Composite**
+  Composto por 2 Pipes
+  (entrada e saída)
+end note
+
+note bottom of Pipe
+  **Cálculos Hidráulicos**
+  Equação Darcy-Weisbach
+  Regime turbulento/laminar
+end note
+
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 07:22:07 BRT 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 11.0.28+6-post-Ubuntu-1ubuntu122.04.1
+Operating System: Linux
+Default Encoding: UTF-8
+Language: pt
+Country: BR
+--></g></svg>

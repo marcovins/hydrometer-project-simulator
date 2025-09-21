@@ -7,12 +7,12 @@
 #include <memory>
 #include <atomic>
 
-#define DIAMETER_IN 0.1f   // metros
-#define LENGTH_IN 1.0f     // metros
-#define ROUGHNESS_IN 0.0001f // metros
-#define DIAMETER_OUT 0.1f  // metros
-#define LENGTH_OUT 1.0f    // metros
-#define ROUGHNESS_OUT 0.0001f // metros
+#define DIAMETER_IN 0.015f
+#define LENGTH_IN 0.15f
+#define ROUGHNESS_IN 0.00005f
+#define DIAMETER_OUT 0.015f
+#define LENGTH_OUT 0.15f
+#define ROUGHNESS_OUT 0.00005f
 
 class Hidrometer {
     public:
