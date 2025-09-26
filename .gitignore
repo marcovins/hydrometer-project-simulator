@@ -5,8 +5,9 @@
 *.obj
 
 
-#IGNORAR JPGES.
+#IGNORAR JPGES. e main
 medicoes_202311250013/*.jpeg
+main
 
 # Precompiled Headers
 *.gch
