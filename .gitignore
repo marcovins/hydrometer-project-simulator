@@ -4,6 +4,10 @@
 *.o
 *.obj
 
+
+#IGNORAR JPGES.
+medicoes_202311250013/*.jpeg
+
 # Precompiled Headers
 *.gch
 *.pch
