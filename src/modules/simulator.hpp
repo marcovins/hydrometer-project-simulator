@@ -15,7 +15,7 @@
 #include "../utils/image.hpp"
 
 #define IMAGE_PATH "medicoes_202311250013/"
-
+#define MAX_SIM 5
 enum Key {
     KEY_UP = 1000,
     KEY_DOWN = 1001,
@@ -47,9 +47,10 @@ class Simulator {
         void imageUpdateLoop() const;
 
         std::atomic<bool> running;
-        std::unique_ptr<Hidrometer> hidrometer;
+        std::unique_ptr<Hidrometer[]> hidrometer;
         std::thread inputThread;
         std::thread imageThread;
+        std::atomic<int> atual;
         Image image;
 };
 

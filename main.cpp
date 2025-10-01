@@ -58,7 +58,7 @@ int main() {
     Logger::log(LogLevel::STARTUP, "");
     
     // Agora muda para modo runtime (apenas 4 linhas visíveis)
-    Logger::setDebugMode(false);
+    Logger::setDebugMode(true);
     Logger::setRuntimeMode(true);
     Logger::clearRuntimeArea();
     

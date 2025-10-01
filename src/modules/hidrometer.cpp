@@ -80,19 +80,8 @@ void Hidrometer::update() {
         this->counterFloat += volumeIncrement * 1000.0f; // Converte m³ para litros
         this->counter.store(static_cast<int>(this->counterFloat));
         int newCounter = this->counter.load();
-
-        // Usa o novo sistema de log para runtime
-        Logger::logRuntime(
-            this->status.load() ? "ATIVO" : "INATIVO",
-            flowIN,
-            flowOUT,
-            newCounter
-        );
                     
     } else {
         this->pipeOUT->setFlowRate(0.0f);
-        
-        // Mostra status inativo
-        Logger::logRuntime("INATIVO", 0.0f, 0.0f, this->counter.load());
     }
 }
