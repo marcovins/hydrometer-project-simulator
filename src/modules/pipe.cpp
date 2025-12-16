@@ -64,9 +64,14 @@
             Logger::log(LogLevel::DEBUG, "[DEBUG] Pipe::setFlowRate - Vazão mínima atingida (" + std::to_string(this->flowRate) + " m³/s)");
             return;
         }
-        else if (flowRate_IN > this->maxFlow) {
+        
+        // Usa tolerância de 0.1% para comparação de floats
+        const float tolerance = 0.001f; // 0.1%
+        if (flowRate_IN > this->maxFlow * (1.0f + tolerance)) {
             Logger::log(LogLevel::DEBUG, "[DEBUG] Pipe::setFlowRate - Vazão máxima atingida (" + std::to_string(this->flowRate) + " m³/s)");
             return;
         }
+        
+        // Limita ao maxFlow se estiver próximo
         this->flowRate = std::min(flowRate_IN, this->maxFlow);
     }

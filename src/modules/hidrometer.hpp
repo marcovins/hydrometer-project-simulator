@@ -28,6 +28,8 @@ class Hidrometer {
 
         void activate();
         void deactivate();
+        void shutdown();  // Para completamente o hidrômetro (finaliza thread)
+        void setCounter(int valor);  // Restaura contador (para persistência)
 
     private:
         void update();

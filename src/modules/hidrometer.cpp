@@ -63,6 +63,22 @@ void Hidrometer::deactivate() {
     this->status.store(false);
 }
 
+void Hidrometer::shutdown() {
+    Logger::log(LogLevel::SHUTDOWN, "[DEBUG] Hidrometer::shutdown - Parando thread do hidrómetro");
+    this->status.store(false);
+    this->running.store(false);
+    
+    if (this->update_thread.joinable()) {
+        this->update_thread.join();
+        Logger::log(LogLevel::SHUTDOWN, "[DEBUG] Hidrometer::shutdown - Thread finalizada");
+    }
+}
+
+void Hidrometer::setCounter(int valor) {
+    this->counter.store(valor);
+    this->counterFloat = static_cast<float>(valor);
+}
+
 void Hidrometer::update() {
     static int updateCount = 0;
     updateCount++;
@@ -80,19 +96,8 @@ void Hidrometer::update() {
         this->counterFloat += volumeIncrement * 1000.0f; // Converte m³ para litros
         this->counter.store(static_cast<int>(this->counterFloat));
         int newCounter = this->counter.load();
-
-        // Usa o novo sistema de log para runtime
-        Logger::logRuntime(
-            this->status.load() ? "ATIVO" : "INATIVO",
-            flowIN,
-            flowOUT,
-            newCounter
-        );
                     
     } else {
         this->pipeOUT->setFlowRate(0.0f);
-        
-        // Mostra status inativo
-        Logger::logRuntime("INATIVO", 0.0f, 0.0f, this->counter.load());
     }
 }
