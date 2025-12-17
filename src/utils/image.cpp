@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 
 Image::Image(int width, int height) {
     this->width = width;
@@ -21,10 +22,16 @@ Image::~Image() {
     }
 }
 
-void Image::generate_image(int counter, float flowRate, float maxFlowRate, std::string name) const {
+void Image::generate_image(int id, int counter, float flowRate, float maxFlowRate, std::string outputPath) const {
     // Log apenas a cada 5 atualizações para não poluir o output
     static int callCount = 0;
     callCount++;
+
+    // Constrói o nome do arquivo no formato: Hidrometro_{id}_{leitura}.jpeg
+    // A leitura é o counter em m³ (dividido por 1000)
+    std::ostringstream filename;
+    filename << "Hidrometro_" << id << "_" << (counter / 1000) << ".jpeg";
+    std::string fullPath = outputPath + filename.str();
 
     // Calcula escala dinâmica baseada na vazão máxima
     float maxFlowRate_m3h = maxFlowRate * 3600.0f; // Converte para m³/h
@@ -281,5 +288,5 @@ void Image::generate_image(int counter, float flowRate, float maxFlowRate, std::
     cairo_show_text(this->cr, title);
 
     // Salva a imagem
-    cairo_surface_write_to_png(this->surface, name.c_str());
+    cairo_surface_write_to_png(this->surface, fullPath.c_str());
 }

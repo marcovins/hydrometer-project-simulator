@@ -215,20 +215,17 @@
                         int counter = this->hidrometer[i].getCounter();
                         float flowRate = this->hidrometer[i].getPipeIN()->getFlowRate();
 
-                        std::ostringstream filename;
-                        filename << "Hidrometro_" << i << ".jpeg";
-                        std::string fileNameStr = IMAGE_PATH + filename.str(); // concatena com o caminho
-
                         Logger::log(LogLevel::DEBUG, "[DEBUG] Simulator::imageUpdateLoop - Update #" + 
                                 std::to_string(updateCount) + " - Counter: " + std::to_string(counter) + 
-                                "L (" + std::to_string(counter/1000.0) + "m³), Flow: " + std::to_string(flowRate) + "m³/s - File: " + fileNameStr);
+                                "L (" + std::to_string(counter/1000.0) + "m³), Flow: " + std::to_string(flowRate) + "m³/s - ID: " + std::to_string(i));
                         
-                        // Passa o caminho completo do arquivo como terceiro argumento
+                        // Passa o ID do hidrômetro, counter, flowRate, maxFlowRate e caminho de saída
                         float maxFlowRate = this->getPipeIN()->getMaxFlow();
-                        this->image.generate_image(counter, flowRate, maxFlowRate, fileNameStr);
+                        this->image.generate_image(i, counter, flowRate, maxFlowRate, IMAGE_PATH);
 
+                        std::string generatedFileName = "Hidrometro_" + std::to_string(i) + "_" + std::to_string(counter/1000) + ".jpeg";
                         Logger::log(LogLevel::DEBUG, "[DEBUG] Simulator::imageUpdateLoop - Imagem gerada com sucesso para update #" + 
-                                std::to_string(updateCount) + " -> " + fileNameStr + " (Marco: " + std::to_string(nextImageThreshold[i]/1000.0) + "m³)");
+                                std::to_string(updateCount) + " -> " + generatedFileName + " (Marco: " + std::to_string(nextImageThreshold[i]/1000.0) + "m³)");
 
                         // Atualiza para o próximo marco de 1m³ (1000L)
                         nextImageThreshold[i] += 1;

@@ -12,7 +12,7 @@ class Image {
 public:
     Image(int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT);
     ~Image();
-    void generate_image(int counter, float flowRate, float maxFlowRate, std::string name) const;
+    void generate_image(int id, int counter, float flowRate, float maxFlowRate, std::string outputPath) const;
 
 private:
     cairo_surface_t* surface;
