@@ -3,6 +3,8 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 Image::Image(int width, int height) {
     this->width = width;
@@ -26,6 +28,12 @@ void Image::generate_image(int id, int counter, float flowRate, float maxFlowRat
     // Log apenas a cada 5 atualizações para não poluir o output
     static int callCount = 0;
     callCount++;
+
+    // Cria o diretório se não existir
+    struct stat st = {0};
+    if (stat(outputPath.c_str(), &st) == -1) {
+        mkdir(outputPath.c_str(), 0755);
+    }
 
     // Constrói o nome do arquivo no formato: Hidrometro_{id}_{leitura}.jpeg
     // A leitura é o counter em m³ (dividido por 1000)

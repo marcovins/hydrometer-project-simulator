@@ -210,7 +210,7 @@
                 int currentCounter = this->hidrometer[i].getCounter();
             
                 try {
-                    // Verifica se atingiu o próximo metro cúbico (1000L)
+                    // Verifica se atingiu o próximo marco (10L para testes)
                     if (currentCounter >= nextImageThreshold[i]) {
                         int counter = this->hidrometer[i].getCounter();
                         float flowRate = this->hidrometer[i].getPipeIN()->getFlowRate();
@@ -227,8 +227,8 @@
                         Logger::log(LogLevel::DEBUG, "[DEBUG] Simulator::imageUpdateLoop - Imagem gerada com sucesso para update #" + 
                                 std::to_string(updateCount) + " -> " + generatedFileName + " (Marco: " + std::to_string(nextImageThreshold[i]/1000.0) + "m³)");
 
-                        // Atualiza para o próximo marco de 1m³ (1000L)
-                        nextImageThreshold[i] += 1;
+                        // Atualiza para o próximo marco de 10L (reduzido para testes)
+                        nextImageThreshold[i] += 10;
                     }
 
                 } catch (const std::exception& e) {

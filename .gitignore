@@ -104,3 +104,5 @@ vcpkg_installed/
 *.swo
 .DS_Store
 Thumbs.db
+
+*.jpeg

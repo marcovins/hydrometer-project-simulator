@@ -10,7 +10,7 @@
             this->roughness = roughness;
             this->flowRate = 0.0;
             
-            this->maxFlow = this->maxFlowForDeltaP(100000.0); // deltaP padrão de 100kPa
+            this->maxFlow = this->maxFlowForDeltaP(1000000.0); // deltaP padrão de 1000kPa (aumentado para testes)
         }
 
     float Pipe::getDiameter() const { return this->diameter; }
