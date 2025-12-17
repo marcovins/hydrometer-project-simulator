@@ -32,7 +32,7 @@ void Logger::log(LogLevel level, const std::string& message) {
     }
 }
 
-void Logger::logRuntime(const std::string& status, float flowIN, float flowOUT, int newCounter) {
+void Logger::logRuntime(const std::string& status, float flowIN, float flowOUT, int newCounter, int hydrometerID) {
     if (!runtimeStarted) return;
     
     // Converte m³/s para m³/h para melhor visualização
@@ -47,8 +47,8 @@ void Logger::logRuntime(const std::string& status, float flowIN, float flowOUT, 
     
     // Exibe as 4 linhas sempre atualizadas
     std::cout << "┌─────────────────────────────────────────────────────────┐" << std::endl;
-    std::cout << "│ Status: " << std::setw(10) << status 
-              << " │ Contador: " << std::fixed << std::setprecision(3) << std::setw(8) << counter_m3 << " m³              │" << std::endl;
+    std::cout << "│ Hidrômetro: " << hydrometerID << " │ Status: " << std::setw(10) << status 
+              << " │ Contador: " << std::fixed << std::setprecision(3) << std::setw(8) << counter_m3 << " m³     │" << std::endl;
     std::cout << "│ Vazão IN: " << std::fixed << std::setprecision(2) << std::setw(8) << flowIN_m3h 
               << " m³/h │ Vazão OUT: " << std::setw(8) << flowOUT_m3h << " m³/h      │" << std::endl;
     std::cout << "└─────────────────────────────────────────────────────────┘" << std::endl;

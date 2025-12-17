@@ -95,7 +95,6 @@ void Hidrometer::update() {
         float volumeIncrement = flowOUT * 0.1f; // m³ por intervalo de 0.1s
         this->counterFloat += volumeIncrement * 1000.0f; // Converte m³ para litros
         this->counter.store(static_cast<int>(this->counterFloat));
-        int newCounter = this->counter.load();
                     
     } else {
         this->pipeOUT->setFlowRate(0.0f);

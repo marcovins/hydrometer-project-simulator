@@ -22,7 +22,7 @@ public:
     static void setRuntimeMode(bool started);
     
     static void log(LogLevel level, const std::string& message);
-    static void logRuntime(const std::string& status, float flowIN, float flowOUT, int newCounter);
+    static void logRuntime(const std::string& status, float flowIN, float flowOUT, int newCounter, int hydrometerID);
     static void clearRuntimeArea();
 };
 
